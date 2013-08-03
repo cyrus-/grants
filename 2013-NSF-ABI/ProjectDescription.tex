@@ -1,12 +1,15 @@
-\documentclass[11pt,letterpaper]{article}
+\documentclass[a4paper,12pt]{article}
 \pagestyle{plain}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage[utf8]{inputenc}
 \usepackage{times}
 \usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{wrapfig}
-\usepackage{multirow}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{setspace}
 \usepackage[
 top    = 1in,
 bottom = 1in,
@@ -14,8 +17,58 @@ left   = 1in,
 right  = 1in]{geometry}
 \linespread{0.92}
 \def\UrlFont{\em}
+\frenchspacing
+
+\definecolor{Code}{rgb}{0,0,0}
+\definecolor{Decorators}{rgb}{0.5,0.5,0.5}
+\definecolor{Numbers}{rgb}{0.5,0,0}
+\definecolor{MatchingBrackets}{rgb}{0.25,0.5,0.5}
+\definecolor{Keywords}{rgb}{0,0,1}
+\definecolor{self}{rgb}{0,0,0}
+\definecolor{Strings}{rgb}{0,0.63,0}
+\definecolor{Comments}{rgb}{0,0.63,1}
+\definecolor{Backquotes}{rgb}{0,0,0}
+\definecolor{Classname}{rgb}{0,0,0}
+\definecolor{FunctionName}{rgb}{0,0,0}
+\definecolor{Operators}{rgb}{0,0,0}
+\definecolor{Background}{rgb}{0.98,0.98,0.98}
+
+\lstnewenvironment{python}[1][]{
+\lstset{
+numbers=left,
+numberstyle=\footnotesize,
+numbersep=1em,
+xleftmargin=1em,
+framextopmargin=2em,
+framexbottommargin=2em,
+showspaces=false,
+showtabs=false,
+showstringspaces=false,
+frame=l,
+tabsize=4,
+% Basic
+basicstyle=\ttfamily\small\setstretch{1},
+backgroundcolor=\color{Background},
+language=Python,
+% Comments
+commentstyle=\color{Comments}\slshape,
+% Strings
+stringstyle=\color{Strings},
+morecomment=[s][\color{Strings}]{"""}{"""},
+morecomment=[s][\color{Strings}]{'''}{'''},
+% keywords
+morekeywords={import,from,class,def,for,while,if,is,in,elif,else,not,and,or,print,break,continue,return,True,False,None,access,as,,del,except,exec,finally,global,import,lambda,pass,print,raise,try,assert},
+keywordstyle={\color{Keywords}\bfseries},
+% additional keywords
+morekeywords={[2]@invariant},
+keywordstyle={[2]\color{Decorators}\slshape},
+emph={self},
+emphstyle={\color{self}\slshape},
+%
+}}{}
 
 \begin{document}
+
 \section{Introduction}
 Scientists construct quantitative models to explain observations about natural systems in a coherent and rigorous manner. These models can be characterized by their scope and validity. The scope of a model is the set of observable quantities that the model can generate predictions about, and the validity of a model is the extent to which these predictions agree with empirical observations of those quantities. Today, as the number of models and the quantity of empirical data increases, scientists face a grand challenge: efficiently discovering relevant models and characterizing their validity against a continually growing body of available evidence. 
 
@@ -77,7 +130,6 @@ Testing in SciUnit proceeds in three phases (Figure \ref{fig:sciunit_flowchart})
 \caption{Workflow in SciUnit. \scriptsize{i) Each experiment generates data, ii) From each set of data, many validation tests can be generated from test families (not shown); an ensemble of tests (from data within or across experiments) forms a test suite.  iii) Tests enumerate capabilities required for models to take them, and provide metadata used to configure models for execution.  iv) Model execution output is checked against test rules to produce a score.  Some test scores are not indicated here (…) for clarity.  v) The score establishes a validation record for that model+test combination.  An ensemble of records for one model is a record suite, and summarizes the scope and validity of the model.}}
 \label{fig:sciunit_flowchart}
 \end{wrapfigure}
-% Update this figure when SciDash repo structure is finalized.    
 
 A validation test in SciUnit is an instance of a Python class implementing the \verb|sciunit.Test| interface. Classes that implement this interface must contain a \verb|run_test| method that receives a model as input and produces a normalized score as output. The capabilities that the model must possess in order for the test to operate correctly are given using the \verb|required_capabilities| attribute. In many cases, several tests will have a similar form, differing only by a choice of parameters or by association with a particular dataset. Such parameterized test families correspond to subclasses of sciunit.Test that take the needed parameters as constructor arguments. 
 
@@ -116,11 +168,34 @@ When a test suite is executed against a model, it produces summary data that can
 
 A test suite can also be used to compare multiple models (described below), producing a table as in Table \ref{table:record_matrix}.
 
-\begin{wrapfigure}{r}{0.\textwidth}
-\includegraphics[scale=0.6]{rate_test.png}
+\begin{figure}
 \caption{A single neuron firing rate test implemented in SciUnit}
-\label{fig:rate_test}
-\end{wrapfigure}
+\label{rate_test}
+\begin{python}
+class RateTest(sciunit.Test):
+	def __init__(self, mean, std, input_current):
+		self.mean, self.std, self.input_current = \
+		mean, std, input_current
+	
+	required_capabilities = (
+		neurounit.Capabilities.ReceivesCurrent,
+		neurounit.Capabilities.ProducesFiringRate
+	)
+	
+	def run_test(self, model):
+		model.set_current(self.input_current) 
+		# Implementation guaranteed by capability check.  
+		rate = model.get_firing_rate()
+		
+		mean, std = self.mean, self.std
+		result = (mean - std) <= rate <= (mean - std)
+		return sciunit.scores.BooleanScore(result, related_data={
+			"rate": rate,
+			"mean": mean,
+			"std": std
+		})
+\end{python}
+\end{figure}
 
 \subsection{Candidates and Capabilities}
 A candidate is the entity to be tested.  In practice, this will almost always provide an implementation for a particular scientific model, so candidate and model can be used interchangeably; we distinguish them allow for the possibility of testing datasets against each other as well.  For clarity, we will refer to candidates as models herein.  In our framework, a model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|, provided by the framework.  In many cases, models can be grouped into parameterized model families, as with tests. These parameters correspond to parameters passed to a subclass constructor.
