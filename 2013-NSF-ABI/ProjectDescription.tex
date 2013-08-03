@@ -4,7 +4,6 @@
 
 \usepackage{amsmath}
 \usepackage{amssymb}
-
 \usepackage{times}
 
 \usepackage[
@@ -68,9 +67,11 @@ The test is then executed against a model instance (described below), using the 
 \verb|score = sciunit.run(mitral_cell_rate_test, synchrony_model)|
 
 The sciunit.run function operates in three phases, implementing the abstractions at the beginning of section 3:
-(1)	Capability Checking: The model is verified as capable of taking the test by checking each capability in the test’s \verb|required_capabilities| attribute.
-(2)	Test Execution: The test’s \verb|run_test| method is called to execute the model and cache output.
-(3)	Output Validation: \verb|run_test| returns an instance of a sciunit.Score subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
+\begin{enumerate}
+\item Capability Checking: The model is verified as capable of taking the test by checking each capability in the test’s \verb|required_capabilities| attribute.
+\item Test Execution: The test’s \verb|run_test| method is called to execute the model and cache output.
+\item Output Validation: \verb|run_test| returns an instance of a sciunit.Score subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
+\end{enumerate}
 
 Any errors that occur during this process are reported by raising an appropriate exception.
 
@@ -187,55 +188,66 @@ When providing coverage of new scientific theories, non-scientist members of the
 We believe that the competitive nature of SciDash will be appealing both to scientists and to the lay community.  Competitions for machine learning [[ref]], solar cars [[ref]], and autonomous vehicles [[ref]] already draw considerable media coverage and we believe that the brain is of no less interest to the public.  Another feature of public competitions is that they welcome teams who may not yet have academic credentials, such as students, both to learn the craft and possibly to demonstrate key insights that had not previously been recognized in the professional scientific community.  
 
 \section{Personnel and Coordination}
+\renewcommand{\theenumi}{\alph{enumi}}
 A scientific software framework succeeds in proportion to its rate of adoption, which is driven in part by:
-a)	Relevance to the needs of both experimental and theoretical scientists.
-b)	Quality of architecture and usability.
-c)	Conformance to accepted data and modeling standards in the targeted communities.
-d)	Integration with existing software tools.  
-e)	Applicability to outstanding questions in a field.
-f)	Community access (i.e. an open and accessible internet presence).  
+\begin{enumerate}
+\item Relevance to the needs of both experimental and theoretical scientists.
+\item Quality of architecture and usability.
+\item Conformance to accepted data and modeling standards in the targeted communities.
+\item Integration with existing software tools.  
+\item Applicability to outstanding questions in a field.
+\item Community access (i.e. an open and accessible internet presence).  
+\end{enumerate}
 
 \subsection{Personnel}
 We have the appropriate team members to meet the six criteria above. 
-
-PI: Richard C Gerkin, PhD
-•	Title: Assistant Research Professor, School of Life Sciences, Arizona State University (ASU)
-•	Expertise: Neurophysiology, computational models, informatics, web development.   
-•	Role (Time): Will coordinate all project activities (25 hrs/week).  
-•	Detail: As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. Dr. Gerkin will
-o	a) coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data.  Experience as both an experimentalist and a modeler will facilitate this objective.   
-o	b) write the NeuroML binding for the testing interface (Conformance)
-o	c) subject models from OSB (and similar models publicly available) to these tests 
-o	d) develop and maintain the SciDash website (Community)
-o	e) coordinate with the developers of OSB to implement automated SciUnit testing.
-
-Co-PI: Sharon M Crook, PhD
-•	Associate Professor, School of Mathematical and Statistical Sciences, ASU
-•	Associate Professor, School of Life Sciences, ASU
-•	Expertise: Neuroinformatics, Computational Modeling
-•	Role: Interface of SciUnit with NeuroML and Open Source Brain
-•	Detail: Access to the broader neuroscience community requires the use of an accepted model description standard.  We naturally chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML, and has committed her support to helping us use NeuroML for model specification (Conformance).  
-
-Co-PI: Jonathan Aldrich, PhD
-•	Associate Professor, School of Computer Science and Institute for Software Research, CMU
-•	Expertise: Software engineering, software verification and validation, human factors
-•	Role (Time): Guide overall software architecture (2 hrs/week)
-•	Detail: 	Dr. Aldrich will supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure quality.  While Mr. Omar will be writing code, Dr. Aldrich will be providing guidance on the overall structure of the implementation.  Dr. Aldrich is already Mr. Omar’s graduate supervisor (funded by other sources), but for this project Dr. Aldrich will take on the additional training responsibilities specific to the focus of this proposal.  
-
-Junior Personnel, Cyrus Omar
-•	Predoctoral Fellow, School of Computer Science, CMU
-•	Expertise: Computational models and computer science 
-•	Role (Time): Core framework design and development (25 hrs/week)
-•	Detail: 	Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project and developing and maintaining the core SciUnit Python module.  He will get feedback from Dr. Gerkin about the outcomes of model testing, which will inform revisions to the code.  
-
-Collaborator, R. Angus Silver, PhD
-•	Title: Professor of Neuroscience and Wellcome Trust Senior Research Fellow, Faculty of Life Sciences, University College, London
-•	Expertise: Neurophysiology, computational neuroscience and neuroinformatics  
-•	Role: Interface of SciUnit with NeuroML and Open Source Brain
-•	Detail: A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Burroughs Wellcome Trust.  The OSB team has welcomed us to test SciUnit on models described at OSB (Integration).  This provides us a wide range of neuroscience models specified in NeuroML (Applicability).  This will in turn expose the project to the international neuroscience modeling community and serve as proof of concept for expansion into other areas of biology.  
+\\
+\\
+\textbf{[PI: Richard C Gerkin, PhD]}
+\begin{description}
+\item[Title:] Assistant Research Professor, School of Life Sciences, Arizona State University (ASU)
+\item[Expertise:] Neurophysiology, computational models, informatics, web development.   
+\item[Role (Time):] Will coordinate all project activities (25 hrs/week).  
+\item[Detail:] As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. Dr. Gerkin will
+\end{description}
+\begin{itemize}
+\item coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data.  Experience as both an experimentalist and a modeler will facilitate this objective.   
+\item write the NeuroML binding for the testing interface (Conformance)
+\item subject models from OSB (and similar models publicly available) to these tests 
+\item develop and maintain the SciDash website (Community)
+\item coordinate with the developers of OSB to implement automated SciUnit testing.
+\end{itemize}
+\textbf{[Co-PI: Sharon M Crook, PhD]}
+\begin{description}
+\item[Title:] Associate Professor, School of Mathematical and Statistical Sciences, School of Life Sciences, ASU
+\item[Expertise:] Neuroinformatics, Computational Modeling
+\item[Role (Time):] Interface of SciUnit with NeuroML and Open Source Brain (2 hrs/week)
+\item[Detail:] Access to the broader neuroscience community requires the use of an accepted model description standard.  We naturally chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML, and has committed her support to helping us use NeuroML for model specification (Conformance).  
+\end{description}
+\textbf{[Co-PI: Jonathan Aldrich, PhD]}
+\begin{description}
+\item[Title:] Associate Professor, School of Computer Science and Institute for Software Research, CMU
+\item[Expertise:] Software engineering, software verification and validation, human factors
+\item[Role (Time):] Guide overall software architecture (2 hrs/week)
+\item[Detail:] Dr. Aldrich will supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure quality.  While Mr. Omar will be writing code, Dr. Aldrich will be providing guidance on the overall structure of the implementation.  Dr. Aldrich is already Mr. Omar's graduate supervisor (funded by other sources), but for this project Dr. Aldrich will take on the additional training responsibilities specific to the focus of this proposal.  
+\end{description}
+\textbf{[Junior Personnel, Cyrus Omar]}
+\begin{description}
+\item[Title:] Predoctoral Fellow, School of Computer Science, CMU
+\item[Expertise:] Computational models and computer science 
+\item[Role (Time):] Core framework design and development (25 hrs/week)
+\item[Detail:] Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project and developing and maintaining the core SciUnit Python module.  He will get feedback from Dr. Gerkin about the outcomes of model testing, which will inform revisions to the code.  
+\end{description}
+\textbf{[Collaborator, R. Angus Silver, PhD]}
+\begin{description}
+\item[Title:] Professor of Neuroscience and Wellcome Trust Senior Research Fellow, Faculty of Life Sciences, University College, London
+\item[Expertise:] Neurophysiology, computational neuroscience and neuroinformatics  
+\item[Role:] Interface of SciUnit with NeuroML and Open Source Brain
+\item[Detail:] A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Burroughs Wellcome Trust.  The OSB team has welcomed us to test SciUnit on models described at OSB (Integration).  This provides us a wide range of neuroscience models specified in NeuroML (Applicability).  This will in turn expose the project to the international neuroscience modeling community and serve as proof of concept for expansion into other areas of biology.  
+\end{description}
 
 \subsection{Means of Coordination}
-Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, and Mr. Omar.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for “Math Biology” group meetings there.  Because the existing projects that form the basis for each collaboration are both a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
+Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, and Mr. Omar.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are both a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
 
 \section{Results from Prior NSF Work}
 Sharon Crook was PI on an NSF grant that… 
