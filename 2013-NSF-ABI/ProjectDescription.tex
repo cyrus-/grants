@@ -8,7 +8,7 @@
 \usepackage{graphicx}
 \usepackage{wrapfig}
 \usepackage{listings}
-\usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{setspace}
 \usepackage{python_syntax}
 \usepackage{natbib}
@@ -54,7 +54,7 @@ Unit tests are produced by the community of developers involved in the developme
 \subsection{SciUnit: A Simple Validation Testing Framework}\todo{Maybe this section should be the start of "Outcomes and Products"}
 Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML \cite{neuroml_url,gleeson_neuroml:_2010}) and interface definition languages (IDLs) \cite{bachmann2008}\todo{Fix reference} are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} 
 
-\begin{wrapfigure}[17]{r}{0.5\textwidth}
+\begin{wrapfigure}[18]{r}{0.5\textwidth}
 \centering
 \includegraphics[scale=0.7]{scidash_github.png}
 \label{fig:scidash_repo}
@@ -187,15 +187,13 @@ In each example, the model produces a firing rate after being provided a current
 
 The model class is initialized with parameters (\verb|i_leak| in the case of the CA1 cell model) to produce a model instance, which is essentially a model with specified parameters.  A tester can specify that model instances taking a test should be initialized with particular parameters, or ranges of parameters. The writer of a test can provide as many or as few of these specifications as she feels are needed to instantiate models capable of passing the test.  These specifcations may reflect important experiment context or metadata, such as known values of key system parameters, or the contents of a pharmacalogical milieu.  In the RateTest above, the tester might specify the mean input resistance of recorded neurons; while this value may not be of interest in itself, it may be required to initialize a model instance capable of passing the test.  The specification could also include a subset of the data of interest, which the model instance can use for training prior to a testing phase.  Figure \ref{fig:sciunit_flowchart} illustrates the testing workflow, and Table \ref{table:glossary} provides definitions for terms used here.  
  
-\begin{table}[h]\scriptsize
+\begin{table}[h]\footnotesize
 \caption{Glossary of Terms}
 \label{table:glossary}
 \begin{tabular}{| c | p{13cm} |}
 \hline
-Experiment & A design for empirically testing a phenomenon.\\ \hline
-Experimental Data & The measurements yielded by an experiment.\\ \hline  
+Data & The measurements yielded by an experiment.\\ \hline  
 Model & An executable function that aims to explain, reproduce, or predict experimental data.  More generally, a candidate.\\ \hline
-Model Output & The path of system states produced by executing a model.\\ \hline
 Model Family & A class that generates a set of related model instances. Each model instance from one family differs according to the set of parameters (corresponding to a particular experimental design, or set of training data) with which it was initialized.\\ \hline  
 Validation	 & The process of assessing the agreement between model output and experimental data.\\ \hline
 (Validation) Test & A function that executes a model and scores the model’s output against a summary of experimental data. One experiment can inform the development of many tests.\\ \hline  
@@ -204,8 +202,6 @@ Test Suite & A collection of tests, each of which attempts to validate a differe
 Score & A value summarizing the performance of a model on a test. This can be a measure of the goodness of fit between model output and experimental data.\\ \hline
 Scope & A list of tests that a model is eligible to take, indicating the range of experimental data that the model might be able to explain or replicate.\\ \hline
 Capability & 	A contract that states that a model is able to produce results of a particular form. For example, a Hodgkin-Huxley neuron model is capable of producing a membrane potential time-series, whereas a model without a notion of voltage is not.\\ \hline
-Signature & The list of capabilities that a test requires a model to provide.\\ \hline
-Manifest & The list of capabilities that a model provides.\\ \hline
 Record & An indication of the test score achieved by a model, along with any initialization conditions.\\ \hline
 Record Suite & A list of records associated with a model.  This summarizes the scope and validity of the model.\\ \hline  
 \end{tabular}
@@ -303,22 +299,23 @@ The cornerstone of a basic science education is learning the scientific method. 
 To make the educational relevance of a validation testing framework more clear, consider teaching the history of advances in cosmology according 
 to the schematic of Table \ref{table:record_matrix}:  
 
-\begin{table}[h]
-\caption{A record matrix illustrating models and data-driven tests from the history of cosmology.  Each row is a model; each column is a test.}
-\label{table:record_matrix}
-\begin{tabular}{| c | c | c | c | c | c | c |}
-\hline
-		& Model Complexity & Babylon & Brahe & Galileo & Le Verrier \\ \hline
-	Ptolemy & Medium & Pass & Fail & Fail & Fail \\ \hline
-	Copernicus & Low & Pass & Fail & Fail & Fail \\ \hline
-	Kepler & Medium & Pass & Pass & Pass & Fail \\ \hline
-	Newton & Low & Pass & Pass & Pass & Fail \\ \hline
-	Einstein & High & Pass & Pass & Pass & Pass \\ \hline
-\end{tabular}
-\end{table}
-
 In Table \ref{table:record_matrix} we consider 5 models of stellar and planetary motion, and describe 4 validation tests derived from relevant data.  Validation testing recapitulates the history of cosmology in a way that shows the scientific method to be an on-going process.  The Geocentric model of Claudius Ptolemy (\cite{ptolemy_almagest_150}) would pass a test derived from Babylonian records of solar and planetary motion.  Ptolemy's model fails all the other tests shown here, including a test constructed from Tycho Brahe's more meticulous measurements of planetary motion (\cite{kepler_rudolphine_1627}), which were inconsistent with Ptolemy's notion of perfectly circular orbits.  The Copernican Heliocentric model (\cite{copernicus_revolutionibus_1543}) also predicts circular orbits and thus fails Brahe's test, but it is far simpler than the Ptolemaic model, dispensing with notions such as "epicycles".  Kepler's laws of planetary motion both permit and explain these elliptic orbits (\cite{kepler_astronomia_1609}), as well as Galileo's unanticipated discovery of moons taking elliptic orbits around Jupiter (\cite{galilei_siderius_1610}).  Newton's gravitational model passes these tests and does so by more succinctly by unifying Kepler's laws under one principle: gravity (\cite{newton_philosophiae_1687}).  One of the earliest challenges to Newton's model came in measurements of perihelion precession of Mercury (\cite{le_verrier_lettre_1859}).  It was not until the discovery of General Relativity that this problem was resolved (\cite{einstein_foundation_1916}).  Interestingly, Einstein proposed 3 tests of his theory, of which one was based on Le Verrier's data.  While this account may be simplistic compared with the complexities of validation testing in modern biology, it would be appropriate for teaching the essentials of the scientific method to a high school or college student.  Although teaching is not part of the budget request for this proposal, future proposals focused on using SciUnit to teach the process of science will be forthcoming.  
 \todo{Add more discussion of teaching, workshops, etc. to get people to understand and use SciUnit, as suggested by the reviewer.}  
+
+\begin{wraptable}[10]{r}{0.7\columnwidth}
+\caption{A record matrix illustrating models and data-driven tests from the history of cosmology. Each row is a model; each column is a test.}
+\label{table:record_matrix}
+\begin{tabular}{| c | c | c | c | c | c | c }
+\hline
+		& \textit{Complexity} & \textbf{Babylon} & \textbf{Brahe} & \textbf{Galileo} & \textbf{Le Verrier} \\ \hline
+	\textbf{Ptolemy} & Medium & \textcolor{ForestGreen}{Pass} & \textcolor{Red}{Fail} & \textcolor{Red}{Fail} & \textcolor{Red}{Fail} \\ \hline
+	\textbf{Copernicus} & Low & \textcolor{ForestGreen}{Pass} & \textcolor{Red}{Fail} & \textcolor{Red}{Fail} & \textcolor{Red}{Fail} \\ \hline
+	\textbf{Kepler} & Medium & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{Red}{Fail} \\ \hline
+	\textbf{Newton} & Low & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{Red}{Fail} \\ \hline
+	\textbf{Einstein} & High & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} \\ \hline
+\end{tabular}
+\end{wraptable}
+\leavevmode
 
 \subsubsection{Journalistic Media}
 When providing coverage of new scientific theories, non-scientist members of the media have no reliable way to determine the importance or quality of those theories.  Even consulting scientists from the field may be unreliable, due to issues of bias or because the consultant lacks the appropriate expertise.  In contrast, SciDash would -- for any model that it covers -- provide an unbiased way for a member of the media to immediately identify the scope of a model and the range of data it explains, and contrast this with previous efforts.  With the original sources of each model and test well-documented on SciDash, relevant contributors could be contacted for further comment or explanation.  Site-embedded commentary provided by modelers and test-writers will also be a helpful media resource.  
