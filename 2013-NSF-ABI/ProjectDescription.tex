@@ -29,6 +29,7 @@ right  = 1in]{geometry}
 
 \begin{document}
 
+% Section 1.
 \section{Introduction}
 Scientists construct quantitative models to explain observations about natural systems in a coherent and rigorous manner. Today, as the number of models and the quantity of empirical data increases, scientists face a grand challenge: efficiently discovering relevant models and characterizing their validity against a continually growing body of available evidence. 
 
@@ -43,6 +44,7 @@ There are several facilities developed for data and model sharing in biology, bu
 
 Related efforts in the machine learning community promote model development and validation against publicly-available datasets.  Kaggle \cite{kaggle_url} drives model development by organizing competitions where training data is made public and competitors submit competing algorithms, compared automatically by cross-validated accuracy on an unrevealed test set. The success of Kaggle \cite{carpenter_may_2011}\todo{A more recent reference might be better since Kaggle has grown a lot since 2011, but this reference is in Science and other ones I saw are in trade magazines.} shows that open competitions are effective, and that this paradigm of "modeling as a competition'' attracts data scientists across traditional discipline boundaries. However, models developed in this way fit only a few general cases in machine learning: classification, regression, and clustering. Validation criteria are straightforward in these domains. Discipline-specific competitions for biology have also resulted in technical advances.  The quantitative single neuron modeling competition \cite{jolivet_quantitative_2008} has helped us understand the complexity-accuracy tradeoff among reduced models of excitable membranes; the "Hopfield'' challenge \cite{hopfield_what_2000} famously illustrated the challenges of identification facing computational neuroscience; the Diadem challenge is advancing the art of neurite reconstruction \cite{diadem_url}; and examples from other subfields of biology abound \cite{dream_url}. Our challenge is to develop a general framework in support of distributed data-driven model validation workflows, but where validation criteria may be complex and discipline-specific. Initially, we will be focus on validation challenges in the biological sciences, particularly neuroscience. 
 
+% Section 2.
 \section{Outcomes and Products}
 Our framework is based on simple validation tests that compute agreement between a model execution result and an experimental observation. Model validity can be identified with the collection of tests passed by the model. This methodology is inspired by the ubiquitous "unit testing" practice of software engineering. A unit test evaluates whether a portion of a computer program (often a single function) meets a simple correctness criterion. A suite of such tests covering desired program behavior validates overall program functionality, and isolates specific causes of failures. Developers often write unit tests before writing the program itself, following a methodology called test-driven development (TDD) \cite{beck2002}\todo{Fix reference}. TDD asserts that a suite of unit tests serve as a program's specification, guiding its development. This allows developers to measure progress simply by looking at the proportion of tests that pass at any point in development. When modifications are made, developers can ensure that existing functionality is maintained by ensuring that all previously passed tests continue to do so.  The success of unit testing and TDD in practice suggests that validation testing is a practical solution to model validation. 
 
@@ -69,61 +71,51 @@ This framework is most effective when the current state of a research area is re
 \subsection{\textit{NeuroUnit}: A Suite of Tests for Neurophysiology}\label{sec:neurounit}
 To demonstrate the utility of these tools, an initial case study must be conducted. Because we have substantial experimental and computational neurophysiology training and expertise, we target the work toward this domain. By using machine-readable models from the Open Source Brain repository, and corresponding machine-readable data from resources like The NeuroElectro Project\todo{URL via citation}, our efforts will produce a body of useful tests that also serve as a demonstration of the test-driven workflow that other areas in the biological sciences can leverage.  \textbf{The third product of this proposal is \textit{NeuroUnit}, a large suite of data-driven tests and model interfaces for a representative set of canonical neurophysiology models, all publicly available. A case study examining the implementation of \textit{NeuroUnit} will inform development of domain specific test-suites in other biology sub-fields.}
 
+% Section 3.
 \section{Preliminary Activities}
 We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository \cite{sciunit_url}.  
 
 \subsection{\textit{SciUnit} Implementation} We implemented \textit{SciUnit} using the Python programming language \cite{python} due to its widespread adoption across the quantitative sciences. Python also supports interoperability with other major languages used within science, including C, R \cite{r_url}, and MATLAB \cite{matlab_url}. The functionality described below could also be readily translated into any programming language with comparable facilities.
 
 \subsection{Validation Tests}\label{sec:validation_tests} 
-Testing in \textit{SciUnit} proceeds in three phases (Figure \ref{fig:sciunit_flowchart}): 
+Testing\todo{I don't think this abstraction is useful.  We make it concrete on the next page anyway.} in \textit{SciUnit} proceeds in three phases (Figure \ref{fig:sciunit_flowchart}): 
 \begin{enumerate}
 \item Capability Checking: The test checks to see that the model is capable of taking the test; i.e., that it exposes the needed functionality for the execution phase to proceed.
-\item Test Execution: The model is executed to produce the model output by interacting with its supported capabilities.  If the model is described according to a standard specification, e.g. NeuroML, this corresponds to loading it into a supported simulator and executing it. 
-\item Output Validation: The model output is compared to empirical data to determine whether the model passes.  This comparison can be of several types: for deterministic models, we may extract a matching quantile from a data distribution; for stochastic models, we may compute a measure of agreement between model output and data distributions, e.g. the Kolmogorov-Smirnov statistic.  Validation is ultimately pass/fail, but in some cases the result generated in this phase also includes a continuous statistic so that models can be ranked based on their test results in a more fine-grained manner.   
+\item Test Execution: The model is executed to produce output by interaction of the test with model capabilities.  If the model is described according to a standard specification, e.g. NeuroML, this corresponds to loading it into a supported simulator, executing it, and reading simulator output. 
+\item Output Validation: Model output is compared to empirical data to determine whether the model passes.  This comparison can be of several types: for deterministic models, we may extract a matching quantile from a data distribution; for stochastic models, we may compute a measure of agreement between model output and data distributions, e.g. the Kolmogorov-Smirnov statistic.  Validation is ultimately pass/fail, but in some cases the result generated in this phase also includes a continuous statistic so that models can be ranked based on their test results in a more fine-grained manner.   
 \end{enumerate}
 
+\todo{Is the workflow figure useful?}
 \begin{wrapfigure}{r}{0.42\textwidth}
 \includegraphics[scale=0.5]{sciunit_flowchart.png}
 \caption{Workflow in \textit{SciUnit}. \scriptsize{i) Each experiment generates data, ii) From each set of data, many validation tests can be generated from test families (not shown); an ensemble of tests (from data within or across experiments) forms a test suite.  iii) Tests enumerate capabilities required for models to take them, and provide metadata used to configure models for execution.  iv) Model execution output is checked against test rules to produce a score.  Some test scores are not indicated here (…) for clarity.  v) The score establishes a validation record for that model+test combination.  An ensemble of records for one model is a record suite, and summarizes the scope and validity of the model.}}
 \label{fig:sciunit_flowchart}
 \end{wrapfigure}
 
-A validation test in SciUnit is an instance of a Python class implementing the \verb|sciunit.Test| interface. Classes that implement this interface must contain a \verb|run_test| method that receives a model as input and produces a normalized score as output. The capabilities that the model must possess in order for the test to operate correctly are given using the \verb|required_capabilities| attribute. In many cases, several tests will have a similar form, differing only by a choice of parameters or by association with a particular dataset. Such parameterized test families correspond to subclasses of sciunit.Test that take the needed parameters as constructor arguments. 
+A validation test in \textit{SciUnit} is an instance of a Python class implementing the \verb|sciunit.Test| interface. Classes that implement this interface must contain a \verb|run_test| method that receives a model as input and produces a \verb|sciunit.Score| (a normalized score) as output. The capabilities that the model must possess in order for the test to operate correctly are given using the \verb|required_capabilities| attribute. In many cases, several tests will have a similar form, differing only by a choice of parameters or by association with a particular dataset. Such parameterized \textit{test families} correspond to subclasses of \verb|sciunit.Test|.  One \textit{test} is an instance of that subclass, with the needed parameters as constructor arguments. 
 
-In Figure \ref{fig:rate_test}, the \verb|RateTest| class implements a parameterized family of tests that compare the output firing rate (action potentials per second) of a neuronal model, driven by a given somatic input current, to an empirically measured mean and standard deviation of the rate derived from a set of replicated experiments. The test produces a boolean score indicating agreement within one standard deviation of the empirical mean. The input currents, mean, and standard deviation are provided as constructor arguments on line 2 (constructors are named \verb|__init__| in Python.) On lines 5-8, the required capabilities are listed: the model must be able to take a current as input and produce firing rates as output. These capabilities are used in the \verb|run_test| method, on lines 11 and 12 respectively, to execute the model against the provided current. The resulting firing rate is compared to the empirical mean and standard deviation on line 15 and a boolean score is produced on lines 16-20. In addition to the boolean value itself, the score also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the model's output rate and the provided mean and standard deviation alongside the result, by specifying the \verb|related_data| parameter.
+In Figure \ref{fig:rate_test}, the \verb|RateTest| class implements a test family that compares the output "firing rate" (action potentials per second) of a neuronal model, driven by a given somatic input current, to an empirical mean and standard deviation (s.d.) of the firing rate derived from a set of replicated experiments. The test produces a boolean score indicating possible agreement within one s.d. of the empirical mean. The input currents, mean, and standard deviation are provided as constructor arguments on line 2 (constructors are named \verb|__init__| in Python.) This parameterization creates a test from the \verb|RateTest| test family.  On lines 6-9, the \verb|required_capabilities| are listed: the model must be able to take a current as input and produce firing rates as output. These \textit{capabilities} are used in the \verb|run_test| method, on lines 11 and 12 respectively, to execute the model against the provided current. The resulting firing rate is compared to the empirical mean and s.d on line 17 and a boolean score is produced on lines 18-22. In addition to the boolean value itself, the score also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the model's output firing rate and the provided mean and s.d. alongside the result, by specifying the \verb|related_data| parameter.
 \todo{Check line numbers above.}  
 
-To create a validation test, a scientist instantiates the RateTest class with a particular mean, standard deviation and input current (I, not shown):
+To create a validation test, a scientist instantiates the RateTest class with a particular mean, standard deviation and input current (I, not shown):\\
+\vspace{-7px}\\\verb|CA1_cell_rate_test = RateTest(mean=18.0, std=40.0, input_current=I)|\\\vspace{-7px}
 \\
+The test is then executed against a model instance (described below), using the \verb|sciunit.run| function:\\
+\vspace{-7px}\\\verb|score = sciunit.run(CA1_cell_rate_test, CA1_cell_model)|\\\vspace{-7px}
 \\
-\verb|CA1_cell_rate_test = RateTest(mean=18.0, std=40.0, input_current=I)|
-\\
-
-The test is then executed against a model instance (described below), using the \verb|sciunit.run| function:
-\\
-\\
-\verb|score = sciunit.run(CA1_cell_rate_test, CA1_cell_model)|
-\\
-
-The \verb|sciunit.run| function operates in three phases, implementing the abstractions at the beginning of section \ref{sec:validation_tests}:
+The \verb|sciunit.run| function operates in three phases, implementing the abstractions from section \ref{sec:validation_tests}:
 \begin{enumerate}
 \item Capability Checking: The model is verified as capable of taking the test by checking each capability in the test's \verb|required_capabilities| attribute.
 \item Test Execution: The test's \verb|run_test| method is called to execute the model and cache output.
-\item Output Validation: \verb|run_test| returns an instance of a \verb|sciunit.Score| subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
+\item Output Validation: \verb|run_test| returns an instance of a \verb|sciunit.Score| subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.  Here the goodness-of-fit is all-or-none, i.e. pass/fail.  
 \end{enumerate}
-
-Any errors that occur during this process are reported by raising an appropriate exception.
+\hspace{-0px}Any errors that occur during this process are reported by raising an appropriate exception.
 
 \subsection{Test Suites}
-A test suite is a collection of tests designed to validate a model against several mutually coherent requirements:
+A test suite is a collection of tests designed to validate a model against several mutually coherent requirements:\\
+\vspace{-7px}\\\verb|spike_tests = sciunit.TestSuite([SpikeWidthTest, SpikeHeightTest])|\\\vspace{-7px}
 \\
-\\
-\verb|spike_tests = sciunit.TestSuite([SpikeWidthTest, SpikeHeightTest])|
-\\
-
-When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the next section.
-
-A test suite can also be used to compare multiple models (described below), producing a table as in Table \ref{table:record_matrix}.
+When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the next section. A test suite can also be used to compare multiple models (described below), producing a table as in Table \ref{table:record_matrix}.
 
 \begin{figure}
 \caption{A single neuron firing rate test implemented in \textit{SciUnit}}
@@ -152,22 +144,25 @@ class RateTest(sciunit.Test):
 			"std": std
 		})
 \end{python}
+\vspace{-18px}
 \end{figure}
 
 \subsection{Candidates and Capabilities}
-A candidate is the entity to be tested.  In practice, this will almost always provide an implementation for a particular scientific model, so candidate and model can be used interchangeably; we distinguish them allow for the possibility of testing datasets against each other as well.  For clarity, we will refer to candidates as models herein.  In our framework, a model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|, provided by the framework.  In many cases, models can be grouped into parameterized model families, as with tests. These parameters correspond to parameters passed to a subclass constructor.
-In order for a model to be tested, it must have certain capabilities that the test requires.  That is, the model must be capable of taking certain kinds of input and generating certain kinds of output that the test will use to evaluate its quality.  A capability is a contract that guarantees that a model is able to produce results of a particular form. We model capabilities as Python classes containing unimplemented methods. In other object-oriented languages, this would correspond to an interface or an abstract class.  
-Let us consider the capabilities of a model publicly available on the Open Source Brain website \cite{osb_ca1_url}.  In the experiment being modeled, recorded data consists of somatic membrane potential of a pyramidal neuron from area CA1 of the hippocampus, and the stimulus consists of somatically-injected current.  This somatic membrane potential includes action potentials, the rate of which is known in neurophysiology as the "firing rate".  The following are some examples of corresponding model capabilities:  
+A \textit{candidate} is the entity to be tested.  In practice, this will usually implementat a particular scientific model, so \textit{candidate} and \textit{model} can be used interchangeably; we distinguish them to allow for the possibility that a candidate itself be a dataset subject to testing.  For clarity, we will refer to candidates as models herein.  A model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|.  In many cases, models can be grouped into parameterized \textit{model families}, as with tests, with parameters passed to an analogous subclass constructor.
 
-A wide variety of capabilities (as in example above) would be enumerated to span the modeling formalisms in use by a community. In the simple example we present here, these three capabilities suffice.  As they are domain-specific (to neuroscience), we place them not in \textit{SciUnit} itself but in \textit{NeuroUnit} in the module \verb|neurounit.capabilities|.  In contrast, \verb|sciunit.capabilities| contains only domain-independent model capabilities, e.g. \verb|TimeIntegrable| (can this model be integrated over time?)
+In order for a model to be tested, it must have certain \textit{capabilities} that the test requires.  That is, the model must be capable of taking certain kinds of input and generating certain kinds of output that the test will use to evaluate its validity.  A \textit{capability} is a contract guaranteeing that a model is able to produce results of a particular form. We model capabilities as Python classes containing unimplemented methods. In other object-oriented languages, this corresponds to an \textit{interface} or an abstract class.  
 
-A model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|.  In the examples below, the CA1 cell model and Purkinje cell model families each exhibit different capabilities, which determine which tests are within their scope.  These differences arise because the researchers who implemented the model did so at different levels of detail.  In particular, the Purkinje cell was modeled with individual dendritic compartments, so there is an associated dendritic membrane potential. 
+Let us consider the capabilities of a model publicly available on the Open Source Brain website \cite{osb_ca1_url}.  In the system being modeled, recorded data consists of the somatic membrane potential of a pyramidal neuron from area CA1 of the hippocampus, and the stimulus consists of somatically-injected current.  This somatic membrane potential includes action potentials, the rate of which is known in neurophysiology as the "firing rate".  Corresponding model capabilities might include \verb|ReceivesCurrent|, \verb|ProducesFiringRate|, and \verb|TimeIntegrable|, the last of these indicating that the model can be integrated over time.    
+
+Many capabilities must be enumerated to span a community's modeling formalisms. In the simple example we present here, these three capabilities suffice.  As two of them are domain-specific (to neuroscience), we place them not in \textit{SciUnit} itself but in \textit{NeuroUnit} in the module \verb|neurounit.capabilities|.  In contrast, \verb|sciunit.capabilities| contains only domain-independent model capabilities like\\ \verb|TimeIntegrable|.
+
+A model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|.  In Figure \ref{fig:ca1_model}, the CA1 cell model family implements the above capabilities, which both permits testing and importantly determines which tests are within its scope.  A models implemented at a different level of detail may have different capabilities and thus be eligible to take a different set of tests.  
 
 \begin{figure}
 \caption{A candidate class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
 \label{fig:ca1_model}
 \begin{python}
-class CA1PyramidalCellModel(candidates.NeuroConstructModel,
+class CA1PyramidalCellModel(NeuroConstructModel,
 				            capabilities.ReceivesCurrent):
 	"""CA1 Pyramidal Cell model from /neuroConstruct/osb/hippocampus/
 	CA1_pyramidal_neuron/CA1PyramidalCell"""
@@ -181,11 +176,12 @@ class CA1PyramidalCellModel(candidates.NeuroConstructModel,
 		candidates.NeuroConstructModel.__init__(self,project_path,**kwargs)
 		super(CA1PyramidalCellModel,self).__init__(**kwargs)
 \end{python}
+\vspace{-18px}
 \end{figure}
 
-In each example, the model produces a firing rate after being provided a current.  This is implemented with multiple inheritance, so that each model expresses methods (such as \verb|set_current|) that override (and implement) the abstract method provided in the corresponding capability classes.  Any capability that the model inherits must have all if its associated methods implemented.  Failure to do so will result in a \verb|NotImplementedError|, which indicates that the model scope was less than what was claimed.  
+In Figure \ref{fig:ca1_model}, the model produces a firing rate after being provided a current.  The capabilities a model must implement are determined by its base classes; it multiply inherits some \verb|sciunit.Candidate| subclass (here NeuroConstruct.Model, described in \ref{sec:neuroml_candidates}), and some number of \verb|sciunit.Capability| subclasses.  The model then expresses methods (such as \verb|set_current|) that override (and implement) the abstract, unimplemented methods provided in the corresponding \verb|sciunit.Capability| subclasses.  Any capability the model inherits must have all if its associated methods implemented.  Failure to do so will result in a \verb|NotImplementedError|, indicating a model scope less than claimed by its inheritance.  
 
-The model class is initialized with parameters (\verb|i_leak| in the case of the CA1 cell model) to produce a model instance, which is essentially a model with specified parameters.  A tester can specify that model instances taking a test should be initialized with particular parameters, or ranges of parameters. The writer of a test can provide as many or as few of these specifications as she feels are needed to instantiate models capable of passing the test.  These specifcations may reflect important experiment context or metadata, such as known values of key system parameters, or the contents of a pharmacalogical milieu.  In the RateTest above, the tester might specify the mean input resistance of recorded neurons; while this value may not be of interest in itself, it may be required to initialize a model instance capable of passing the test.  The specification could also include a subset of the data of interest, which the model instance can use for training prior to a testing phase.  Figure \ref{fig:sciunit_flowchart} illustrates the testing workflow, and Table \ref{table:glossary} provides definitions for terms used here.  
+A \textit{model family} is initialized with parameters (\verb|i_leak| in the case of the model in Fig. \ref{fig:ca1_model}) to produce a \textit{model}.  A test does not specify these parameters, however a tester may nonetheless subject a range of models from a model family to the same test.  This is done by repeatedly instantiating the model with different parameters (for example, in a loop).  If a particular parameter value in the model is required for a test to be sensible, this can be expressed in the list of \verb|required_capabilities|.  For example, if the test is only passable by models corresponding to a particular pharamacological milieu (e.g. with some fraction of ion channels of a certain type blocked), then \verb|required_capabilities| might include \verb|ModifiesConductance|, exposing a method \verb|set_conductance|.  The test specification could also include run-time arguments for models, which could correspond to a waveform of injected somatic current, or alternatively to training data for models implementing completing algorithms.  Figure \ref{fig:sciunit_flowchart} illustrates the testing workflow, and Table \ref{table:glossary} provides definitions of terms.  
  
 \begin{table}[h]\footnotesize
 \caption{Glossary of Terms}
@@ -211,13 +207,14 @@ Record Suite & A list of records associated with a model.  This summarizes the s
 We have also begun work on the \textit{SciDash} web portal, which will serve to aggregate tests and their results for the scientific community. A development version is currently live \cite{scidash_url}.  We have populated it with the models and tests from the educational illustration in Table \ref{table:record_matrix}.  This application has several key features.  \textbf{First}, it will provide a "dashboard" view of the state of a field by displaying a matrix of records for selected model/test combinations.  By designing the site with modern javascript-based data visualization libraries, users will be able to filter this matrix quickly to obtain the relevant subset of models and tests most relevant to their scientific questions.  \textbf{Second}, each record will link to a Sage notebook worksheet displaying line-by-line the code that was executed and any intermediate output statements.  Sage \cite{stein_sage:_2005,sage_url} is free open-source mathematics software heavily funded by NSF, based on a Python environment.  The Sage notebook \cite{sagenb_url} is a web application whose "worksheets" offer a means to publish and collaborate on a block of code, and to view its numerical and graphical outputs.  While Sage was written for Python, the notebook also supports the execution of code and visualization of outputs from other programming languages, making possible worksheets based on MATLAB, Mathematica, and other popular environments for modeling.  \textbf{Third}, a community-moderated comment section will allow test-makers and test-takers to discuss issues associated with each record.  Thus, disagreements about the appropriateness of a test can be openly aired and in many cases resolved.  Rather than require special login credentials, we support open authentication via existing web portals (Google, Yahoo, Twitter, etc.), lowering the barrier to participation.  The \textit{SciDash} backend will consist of a MySQL relational database and XML files.  
 \todo{Replace discussion of Sage with use of github for SciDash repositories.}  
 
+% Section 4.
 \section{Research and Development Plan}
 In order to 1) accelerate development and testing of the framework and 2) populate it with models and tests, we will focus during the period of this grant on one scientific discipline (neurophysiology), without compromising generalizability to other fields. This will allow us to get rapid feedback from an experimental community the authors are familiar with as we iterate through the software development cycle.  
 
 \subsection{Leverage of existing resources for the development of \textit{NeuroUnit}}
 Here we describe standard tools in neuroinformatics that we have adopted to develop \textit{NeuroUnit} \cite{neurounit_url} with the neurophysiology community in mind.  
 
-\subsubsection{Candidates from NeuroML Models}
+\subsubsection{Candidates from NeuroML Models}\label{sec:neuroml_candidates}
 NeuroML is a standardized model description language for neuroscience \cite{gleeson_neuroml:_2010}. It permits most neurophysiological and neuroanatomical models to be described in a simulation-independent fashion, and these models can be run in any of a number of popular simulators due to the programmatic inter-conversion capabilities of the NeuroML API.  Because NeuroML is an XML specification, which can be both validated for correctness and queried for model properties and components, it is ideal for model sharing and curation, as well as for answering what and how in a machine-readable manner.  
 
 To this end \textit{NeuroUnit} offers a \verb|sciunit.Candidate| subclass called \verb|NeuroConstructModel|. NeuroConstruct \cite{neuroconstruct_url,gleeson_neuroconstruct:_2007} is a simulation manager that starts with NeuroML models and then simulates them in any of the conventional simulators listed above. \verb|NeuroConstructModel| is instantiated with the path to any NeuroML model created in or imported into NeuroConstruct.  Because the family of all models that can be described by NeuroML is vast, the \verb|NeuroConstructModel| class makes very limited assumptions about the candidate models: that they are runnable, and that at least one compartment generates a membrane potential. \verb|NeuroConstructModel| is then subclassed to test specific NeuroML models. 
@@ -293,6 +290,7 @@ Larger, longer, and more expressive models may be considered more \textit{comple
 \subsubsection{Expansion Into Other Areas of Biology}
 After proving its utility in neurophysiology, we would like \textit{SciUnit} to expand first across neuroscience and then into other biological sciences.  Since the core framework is discipline-agnostic, the only obstacles are community participation and model description.  As with neurophysiology, community participation begins with enumerating the capabilities relevant to a sub-discipline, and then writing tests.  Model description can expand within NeuroML (which already covers multiple levels and approaches within neuroscience) and \textit{NeuroUnit} tools can begin to incorporate libraries for neuroimaging (NiBabel \cite{nibabel_url}), neuroanatomy (NeuroHDF, \cite{neurohdf_url}) and others.  SEDML \cite{hucka_systems_2003,sedml_url}, a model description language for systems biology, will facilitate expansion outside of neuroscience.  This transition will be facilitated by parallel efforts in the NeuroML community to interface with SEDML (Crook, unpublished).    
 
+% Section 5.
 \section{Community and Educational Outreach}
 \subsection{K-12 Education}
 The cornerstone of a basic science education is learning the scientific method.  Unfortunately, the process by which the scientific method is applied both within and across labs may be too informal be recognizable to students.  The \textit{SciDash} web portal will provide an example of the scientific method in practice, determining which hypotheses (models) can withstand the scrutiny of evidence (can pass tests).  Revision of hypotheses to match evidence will also be transparent, as \textit{SciDash} will show and optionally group test results for each variant of a model.  Indeed, OSB already tracks and makes available revisions to models, so the addition of a testing framework and transparent test results to that project would complete both the implementation and presentation of the scientific method for selected models in neuroscience.  The ability to visualize the scientific method at work from any computer in the world will represent a major step forward in science education.  
@@ -322,6 +320,7 @@ When providing coverage of new scientific theories, non-scientist members of the
 
 We believe that the competitive nature of \textit{SciDash} will be appealing both to scientists and to the lay community.  Competitions for machine learning, solar cars, and autonomous vehicles already draw considerable media coverage and we believe that the brain is of no less interest to the public.  Another feature of public competitions is that they welcome teams who may not yet have academic credentials, such as students, both to learn the craft and possibly to demonstrate key insights that had not previously been recognized in the professional scientific community.  
 
+% Section 6.
 \section{Personnel and Coordination}
 \renewcommand{\theenumi}{\alph{enumi}}
 A scientific software framework succeeds in proportion to its rate of adoption, which is driven in part by:
@@ -343,10 +342,10 @@ We have the appropriate team members to meet the six criteria above.
 \item[Title:] Assistant Research Professor, School of Life Sciences, Arizona State University (ASU)
 \item[Expertise:] Neurophysiology, computational models, informatics, web development.   
 \item[Role (Time):] Will coordinate all project activities (25 hrs/week).  
-\item[Detail:] As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. Dr. Gerkin will
+\item[Detail:] As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. Dr. Gerkin will:
 \end{description}
 \begin{itemize}
-\item coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data.  Experience as both an experimentalist and a modeler will facilitate this objective.   
+\item coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data.  Experience as both an experimentalist and a modeler will facilitate this objective (\textbf{Relevance}).   
 \item write the NeuroML binding for the testing interface (\textbf{Conformance})
 \item subject models from OSB (and similar models publicly available) to these tests 
 \item develop and maintain the \textit{SciDash} website (\textbf{Community})
@@ -371,7 +370,7 @@ We have the appropriate team members to meet the six criteria above.
 \item[Title:] Predoctoral Fellow, School of Computer Science, CMU
 \item[Expertise:] Computational models and computer science 
 \item[Role (Time):] Core framework design and development (25 hrs/week)
-\item[Detail:] Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project and developing and maintaining the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about the outcomes of model testing, which will inform revisions to the code.  
+\item[Detail:] Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project (\textbf{Quality}) and developing and maintaining the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about the outcomes of model testing, which will inform revisions to the code.  
 \end{description}
 \textbf{[Collaborator, R. Angus Silver, PhD]}
 \begin{description}
@@ -385,12 +384,13 @@ We have the appropriate team members to meet the six criteria above.
 \item[Title:] Research Fellow, Dept. of Biological Sciences, CMU
 \item[Expertise:] Neuroinformatics, computational neuroscience, data mining.    
 \item[Role:] Interface of \textit{SciUnit} with NeuroElectro
-\item[Detail:] A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest respository for data about electrophysiological properties of neurons.  This provides us a wide range of data for testing neuroscience models.  
+\item[Detail:] A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest respository for data about electrophysiological properties of neurons.  This provides us a wide range of data for testing neuroscience models.  Tripathy will facilitiate \textbf{integration} with NeuroElectro.  
 \end{description}
 
 \subsection{Means of Coordination}
 Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are both a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
 
+% Section 7.
 \section{Results from Prior NSF Work}
 Sharon Crook was PI on an NSF grant that... 
 \todo{Get previous NSF support section from Sharon.}  
