@@ -312,18 +312,12 @@ The competitive nature of \textit{SciDash} will be appealing both to scientists 
 % Section 6.
 \section{Personnel and Coordination}
 \renewcommand{\theenumi}{\alph{enumi}}
-A scientific software framework succeeds in proportion to its rate of adoption, which is driven in part by:
-\begin{enumerate}
-\item \textbf{Relevance} to the needs of both experimental and theoretical scientists.
-\item \textbf{Quality} of architecture and usability.
-\item \textbf{Conformance} to accepted data and modeling standards in the targeted communities.
-\item \textbf{Integration} with existing software tools.  
-\item \textbf{Applicability} to outstanding questions in a field.
-\item \textbf{Community} access (i.e. an open and accessible internet presence).  
-\end{enumerate}
+A scientific software framework succeeds in proportion to its rate of adoption, which is driven in part by: \textbf{Relevance} to the needs of both experimental and theoretical scientists;
+\textbf{Quality} of architecture and usability; \textbf{Conformance} to accepted data and modeling standards in the targeted communities; \textbf{Integration} with existing software tools; \textbf{Applicability} to outstanding questions in a field; \textbf{Community} access (i.e. an open and accessible internet presence).
+\todo{Make sure to get each of these terms in the personnel descriptions below as often as possible without being annoying.}
 
 \subsection{Personnel}
-We have the appropriate team members to meet the six criteria above. 
+We have the appropriate team members to meet the criteria above. 
 \\
 \\
 \textbf{[PI: Richard C Gerkin, PhD]}
@@ -331,21 +325,15 @@ We have the appropriate team members to meet the six criteria above.
 \item[Title:] Assistant Research Professor, School of Life Sciences, Arizona State University (ASU)
 \item[Expertise:] Neurophysiology, computational models, informatics, web development.   
 \item[Role (Time):] Will coordinate all project activities (25 hrs/week).  
-\item[Detail:] As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. Dr. Gerkin will:
+\item[Detail:] As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. He will also: coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data (experience as both an experimentalist and a modeler will facilitate this objective (\textbf{Relevance})); write NeuroML-related bindings (e.g. \verb|NeuroConstructModel|) (\textbf{Conformance}); subject models from OSB (and similar models publicly available) to these tests; develop and maintain the \textit{SciDash} website (\textbf{Community}); coordinate with the developers of OSB to implement automated \textit{SciUnit} testing.
 \end{description}
-\begin{itemize}
-\item coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data.  Experience as both an experimentalist and a modeler will facilitate this objective (\textbf{Relevance}).   
-\item write the NeuroML binding for the testing interface (\textbf{Conformance})
-\item subject models from OSB (and similar models publicly available) to these tests 
-\item develop and maintain the \textit{SciDash} website (\textbf{Community})
-\item coordinate with the developers of OSB to implement automated \textit{SciUnit} testing.
-\end{itemize}
+
 \textbf{[Co-PI: Sharon M Crook, PhD]}
 \begin{description}
 \item[Title:] Associate Professor, School of Mathematical and Statistical Sciences, School of Life Sciences, ASU
 \item[Expertise:] Neuroinformatics, Computational Modeling
 \item[Role (Time):] Interface of \textit{SciUnit} with NeuroML and Open Source Brain (2 hrs/week)
-\item[Detail:] Access to the broader neuroscience community requires the use of an accepted model description standard.  We naturally chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML, and has committed her support to helping us use NeuroML for model specification (\textbf{Conformance}).  
+\item[Detail:] Access to the broader neuroscience community requires the use of an accepted model description standard.  We chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML and will help us use NeuroML for model specification (\textbf{Conformance}).  
 \end{description}
 \textbf{[Co-PI: Jonathan Aldrich, PhD]}
 \begin{description}
@@ -359,25 +347,25 @@ We have the appropriate team members to meet the six criteria above.
 \item[Title:] Predoctoral Fellow, School of Computer Science, CMU
 \item[Expertise:] Computational models and computer science 
 \item[Role (Time):] Core framework design and development (25 hrs/week)
-\item[Detail:] Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project (\textbf{Quality}) and developing and maintaining the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about the outcomes of model testing, which will inform revisions to the code.  
+\item[Detail:] Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project (\textbf{Quality}) and developing and maintaining the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about practicalities of model testing, which will inform revisions to the code.  
 \end{description}
 \textbf{[Collaborator, R. Angus Silver, PhD]}
 \begin{description}
 \item[Title:] Professor of Neuroscience and Wellcome Trust Senior Research Fellow, Faculty of Life Sciences, University College, London
 \item[Expertise:] Neurophysiology, computational neuroscience and neuroinformatics  
 \item[Role:] Interface of \textit{SciUnit} with NeuroML and Open Source Brain
-\item[Detail:] A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Burroughs Wellcome Trust.  The OSB team has welcomed us to test \textit{SciUnit} on models described at OSB (\textbf{Integration}).  This provides us a wide range of neuroscience models specified in NeuroML (\textbf{Applicability}).  This will in turn expose the project to the international neuroscience modeling community and serve as proof of concept for expansion into other areas of biology.  
+\item[Detail:] A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Burroughs Wellcome Trust.  The OSB team has welcomed us to integrate \textit{SciUnit} into OSB for automated model testing(\textbf{Integration}).  This exposes a wide range of neuroscience models specified in NeuroML (\textbf{Applicability}), and in turn exposes the project to the international neuroscience modeling community, serving as proof of concept for expansion into other areas of biology.  
 \end{description}
 \textbf{[Collaborator, Shreejoy Tripathy, PhD]}
 \begin{description}
 \item[Title:] Research Fellow, Dept. of Biological Sciences, CMU
 \item[Expertise:] Neuroinformatics, computational neuroscience, data mining.    
 \item[Role:] Interface of \textit{SciUnit} with NeuroElectro
-\item[Detail:] A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest respository for data about electrophysiological properties of neurons.  This provides us a wide range of data for testing neuroscience models.  Tripathy will facilitiate \textbf{integration} with NeuroElectro.  
+\item[Detail:] A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest data repository concerning electrophysiological properties of neurons.  This provides us a wide range of data for testing neuroscience models.  Tripathy will facilitiate \textbf{integration} with NeuroElectro through further development of the API.  
 \end{description}
 
 \subsection{Means of Coordination}
-Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are both a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
+Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
 
 % Section 7.
 \section{Results from Prior NSF Work}
