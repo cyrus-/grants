@@ -28,6 +28,8 @@ right  = 1in]{geometry}
 \frenchspacing
 \setlist{nolistsep} % or \setlist{noitemsep} to leave space around whole list
 
+\newcommand{\bfhead}[1]{\noindent \textbf{#1:}}
+
 \begin{document}
 % Section 1.
 \section{Introduction}
@@ -402,11 +404,35 @@ Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. A
 \section{Results from Prior NSF Work}
 Sharon Crook was PI on NSF II-0613404, CRCNS: Behaviorally Relevant Neuronal Modification during Postembryonic Development, which was funded from 10/06 through 9/10. This work examined how dendritic structure and synapse distributions follow functional architecture principles that relate directly to a neuron’s individual behavioral requirements in holometabolous insects, such as Manduca sexta and Drosophila melanogaster. The modeling activities focused on flight motoneurons, which generally transform from tonically firing larval crawling motoneurons into phasically firing adult flight motoneurons. This ongoing work contributed to four publications so far \cite{hohensee,meseke,herrera-valdez_2012,herrera-valdez_jcns_2013} with two more in review, as well as seven published abstracts \cite{jennings_2007,herrera-valdez_2009,berger_2009,herrera-valdez_2010,smith_2011,berger_2012,berger_2013}, and 12 poster or oral presentations at conferences. It also provided partial funding for training opportunities for five graduate students and a postdoctoral researcher.
 
-Jonathan Aldrich has been a PI or co-PI on four prior NSF grants.  NSF CAREER grant CCF-0546550, "Lightweight Modeling and Enforcement of Architectural Behavior" (2006-2010), focused on the Scholia approach to extracting a run-time architecture from object-oriented code, as well as analyzing architectural behavior.  12 major journal or conference publications -- note that major conferences are more prestigious than journals in CS -- as well as 12 workshop articles emerged from the grant, including (Abi-Antoun et al, 2007, Abi-Antoun et al, 2008; Abi-Antoun and Aldich, 2008, Abi-Antoun and Aldrich, 2009)\todo{Replace Jonathan's citations here and below with citation codes.}.  NSF grant CCF-0811592, "CPA-SEL: Practical Typestate Verification with Assume-Guarantee Reasoning" (2008-2011), funded fundamental advances in lightweight typestate verification approaches.  These were described in 7 major publications, including (Bierhoff and Aldrich, 2007; Beckman et al, 2008; Bierhoff et al, 2009; Jaspan and Aldrich, 2009; Sunshine et al, 2011).  NSF grant CCF-1116907, "SHF:Small:Foundations of Permission-Based Object-Oriented Languages" (2011-2014), is only a year old, but has already yielded a paper in the premier publication venue for programming languages describing a novel type system for modularly reasoning about aliasing in object-oriented programs (Naden et al, 2012).  These grants resulted in several open-source software tools for research and education, including ArchJava, Plural, Crystal, and SASyLF (see references cited).  Aldrich has just been awarded NSF grant "TUES: Collaborative Research: Teaching Software Modularity through Architectural Review," but only a month has passed since that award. 
+
+\bfhead{Jonathan Aldrich - Intellectual Merit} In his work on NSF CAREER grant
+CCF-0546550, ``Lightweight Modeling and Enforcement of
+Architectural Behavior'' (2006-2010), Aldrich and his
+students developed a new approach to extracting
+run-time architectures from code and analyzing their
+behavior, producing 12 major publications (note that major conferences are more prestigious than journals in CS) and numerous workshop papers,
+including~\cite{AAC07,bierhoff07:modular_typestate_checking,AAN+08,AA07a,AA07b,AA08d,AA09a,AA09b,AB10}.
+More recently, Aldrich's work has been supported by NSF
+grants CCF-0811592 and CCF-1116907, which have led to 8
+major publications so far focused on language design
+and analysis approaches to verifying protocols of
+interaction between objects and proving safety
+properties of concurrent systems~\cite{beckman08:verifying_atomic,bierhoff09:plural,JA09,aldrich11:plaid,sunshine11:plaid,naden12:borrowing,hannesPlural,PradelAPI13}.  The DUE-1140760 project, just a year old now, has produced preliminary results on design education~\cite{Cai13}.
+
+\bfhead{Jonathan Aldrich - Broader Impacts} The NSF grants mentioned above have contributed to the education of 11 Ph.D. students, including 4 women, and at least that many undergraduate or master's students.  The grants have also supported the development and release of a number of open-source tools,
+including ArchJava \cite{ArchJava}, Plural \cite{pluraltool}, Crystal \cite{Crystal}, and SASyLF
+\cite{SASyLF}. All of these have been used in education at
+Carnegie Mellon and at other institutions, as has the approach to teaching design from the DUE-1140760 project.  Recognition of the broader impacts of
+Aldrich's work on software architecture include the 2007 Dahl-Nygaard
+Junior Prize and an ICSE most influential paper award.
+
+
+
+
 
 \todo{Document officially ends here for page count purposes.  Must be under 15 pages.}
 \bibliographystyle{unsrt}
-\bibliography{references,references_crook,urls}\todo{Remove bibliography with nobibliography tag before submission}
+\bibliography{references,references_crook,urls,references_ja}\todo{Remove bibliography with nobibliography tag before submission}
 
 \listoftodos
 \end{document}
