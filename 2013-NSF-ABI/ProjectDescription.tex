@@ -62,7 +62,37 @@ The first product of this proposal is a simple validation testing framework to s
 
 A validation test in SciUnit is an instance of a Python class implementing the \verb|sciunit.Test|\todo{use a better tt font} interface. Classes that implement this interface must contain a \verb|run_test| method that receives a model as input and produces a normalized score as output. The capabilities that the model must possess in order for the test to operate correctly are given using the \verb|required_capabilities| attribute. In many cases, several tests will have a similar form, differing only by a choice of parameters or by association with a particular dataset. Such parameterized test families correspond to subclasses of \verb|sciunit.Test| that take the needed parameters as constructor arguments. 
 
-In the example below, the RateTest class implements a parameterized family of tests that compare the output firing rate (action potentials per second) of a neuronal model, driven by a given somatic input current, to an empirically measured mean and standard deviation of the rate derived from a set of replicated experiments. The test produces a boolean score indicating agreement within one standard deviation of the empirical mean. The input currents, mean, and standard deviation are provided as constructor arguments on line 2 (constructors are named \verb|__init__| in Python.) On lines 5-8, the required capabilities are listed: the model must be able to take a current as input and produce firing rates as output. These capabilities are used in the \verb|run_test| method, on lines 11 and 12 respectively, to execute the model against the provided current. The resulting firing rate is compared to the empirical mean and standard deviation on line 15 and a boolean score is produced on lines 16-20. In addition to the boolean value itself, the score also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the model's output rate and the provided mean and standard deviation alongside the result, by specifying the \verb|related_data| parameter.
+\begin{figure}
+\caption{A single neuron firing rate test implemented in \textit{SciUnit}}
+\label{fig:rate_test}
+\begin{python}
+class RateTest(sciunit.Test):
+	def __init__(self, mean, std, input_current):
+		self.mean, self.std, self.input_current = \
+		mean, std, input_current
+	
+	required_capabilities = (
+		neurounit.Capabilities.ReceivesCurrent,
+		neurounit.Capabilities.ProducesFiringRate
+	)
+	
+	def run_test(self, model):
+		model.set_current(self.input_current) 
+		# Implementation guaranteed by capability check.  
+		rate = model.get_firing_rate()
+		
+		mean, std = self.mean, self.std
+		result = (mean - std) <= rate <= (mean - std)
+		return sciunit.scores.BooleanScore(result, related_data={
+			"rate": rate,
+			"mean": mean,
+			"std": std
+		})
+\end{python}
+\vspace{-18px}
+\end{figure}
+
+In the example from Figure \ref{fig:rate_test}, the RateTest class implements a parameterized family of tests that compare the output firing rate (action potentials per second) of a neuronal model, driven by a given somatic input current, to an empirically measured mean and standard deviation of the rate derived from a set of replicated experiments. The test produces a boolean score indicating agreement within one standard deviation of the empirical mean. The input currents, mean, and standard deviation are provided as constructor arguments on line 2 (constructors are named \verb|__init__| in Python.) On lines 5-8, the required capabilities are listed: the model must be able to take a current as input and produce firing rates as output. These capabilities are used in the \verb|run_test| method, on lines 11 and 12 respectively, to execute the model against the provided current. The resulting firing rate is compared to the empirical mean and standard deviation on line 15 and a boolean score is produced on lines 16-20. In addition to the boolean value itself, the score also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the model's output rate and the provided mean and standard deviation alongside the result, by specifying the \verb|related_data| parameter.  \todo{Can the test output a standard measure of agreement in addition to the boolean value and the related data?}
 
 To create a validation test, a scientist instantiates the RateTest class with a particular mean, standard deviation and input current (I, not shown):
 
@@ -75,22 +105,30 @@ The test is then executed against a model instance (described below), using the 
 The sciunit.run function operates in three phases, implementing the abstractions at the beginning of section 3:
 (1)	Capability Checking: The model is verified as capable of taking the test by checking each capability in the test's \verb|required_capabilities| attribute.
 (2)	Test Execution: The test's \verb|run_test| method is called to execute the model and cache output.
-(3)	Output Validation: \verb|run_test| returns an instance of a sciunit.Score subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
+(3)	Output Validation: \verb|run_test| returns an instance of a \verb|sciunit.Score| subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
 
 Any errors that occur during this process are reported by raising an appropriate exception.
 
 \subsection{Test Suites}
-A test suite is a collection of tests designed to validate a model against several mutually coherent requirements.
+A test suite is a collection of tests designed to validate a model against several mutually coherent requirements:
 
-\verb|urban_tests = sciunit.TestSuite([mitral_cell_rate_test, mitral_cell_interval_test])|
+\noindent
+\verb|urban_tests = sciunit.TestSuite([mitral_cell_rate_test, \|
+
+\noindent
+\verb|                                 mitral_cell_interval_test])|
 
 When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the next section.
 
 \subsection{Community Workflow}\todo{Maybe this section should be moved to the end of the introduction}
-Unit tests are produced by the community of developers involved in the development of a program. Correspondingly, members of a scientific community can collaboratively produce suites of validation tests in common source code repositories. Each test specifies the model requirements, and provides a procedure for determining whether a candidate model (the input to the test) is consistent with a particular summary of experimental observations (the parameters of the test). Model performance on a collaboratively curated suite of validation tests can serve as justification of claims regarding the model's validity as a description of the scientific system characterized by the test suite. This workfLlow continuously produces a summary of the field indicating which models are capable of taking each test, i.e. whether the test falls within the model's scope, and for each capable model, how well it performed, i.e. its validity.  Model usefulness becomes a function of the weight given to each test, determined per investigator or by community consensus. This test-driven scientific workflow leverages the desire of modelers to promote their models' virtues -- test suites represent clear \emph{challenges}, issued by experimentalists to the community, and passed tests certify success for the modelers. As more data is gathered and test suites are refined, past models can be tested continuously againt current empirical knowledge, in a fully-automated manner because the interface between tests and models is fixed.  
+Unit tests are produced by the community of developers involved in the development of a program. Correspondingly, members of a scientific community can collaboratively produce suites of validation tests in common source code repositories. Each test specifies the model requirements, and provides a procedure for determining whether a candidate model (the input to the test) is consistent with a particular summary of experimental observations (the parameters of the test). Model performance on a collaboratively curated suite of validation tests can serve as justification of claims regarding the model's validity as a description of the scientific system characterized by the test suite.
+This workflow continuously produces a summary of the field indicating which models are capable of taking each test, i.e. whether the test falls within the model's scope, and for each capable model, how well it performed, i.e. its validity.  Model usefulness becomes a function of the weight given to each test, determined per investigator or by community consensus. This test-driven scientific workflow leverages the desire of modelers to promote their models' virtues -- test suites represent clear \emph{challenges}, issued by experimentalists to the community, and passed tests certify success for the modelers. As more data is gathered and test suites are refined, past models can be tested continuously againt current empirical knowledge, in a fully-automated manner because the interface between tests and models is fixed.  
 
 \subsection{\textit{SciUnit}: A Simple Validation Testing Framework}\todo{Maybe this section should be the start of "Outcomes and Products"}
 Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML \cite{neuroml_url,gleeson_neuroml:_2010}) and interface definition languages (IDLs) \cite{bachmann2008}\todo{Fix reference} are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} 
+
+\subsection{\textit{SciDash}: A Community web application}
+This framework is most effective when the current state of a research area is represented by a collection of tests and models. This requires coordination among research groups, so community-oriented cyberinfrastructure to support test suite creation and summarization, building upon \textit{SciUnit}, is essentiall. We propose a service, called \textit{SciDash}, utilizing existing infrastructure for coordinated development of software repositories, focusing on GitHub \cite{github_url} \cite{ram_git_2013}. A suite of related tests will be contained in a GitHub repository with a stereotyped high-level structure that allows the \textit{SciDash} web application to discover, index and summarize it on an ongoing basis (Fig. \ref{fig:scidash_repo}). The portal, a web application written using the pythonic Django framework \cite{django_url} will serve as a central location where scientists can discover relevant test suites, determine test requirements, and summarize the results of test execution on submitted models. Test results can be visualized as a "record matrix" composed of large numbers of model/test combinations (Table \ref{table:record_matrix} provides a toy example).  Each row in this matrix will contain results for all tests taken by one model and would serve as clear evidence of that model's scope and validity.  Models, tests, and records will be stored on GitHub, pointed to by hyperlinks in the record matrix. \textit{SciDash} will serve as a public record of competition among models, facilitating and encouraging data-driven development among modelers. \textbf{Thus, the second product of this proposal is a web application called \textit{SciDash}, whose back-end can index test suite repositories collaboratively developed on GitHub, and whose front-end offers users a simple environment for discovery and evaluation of models, tests, and results.}  
 
 \begin{wrapfigure}[18]{r}{0.5\textwidth}
 \centering
@@ -100,8 +138,6 @@ Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an 
 \end{wrapfigure}
 \leavevmode
 \todo{Update this figure when SciDash repo structure is finalized.}    
-\subsection{\textit{SciDash}: A Community web application}
-This framework is most effective when the current state of a research area is represented by a collection of tests and models. This requires coordination among research groups, so community-oriented cyberinfrastructure to support test suite creation and summarization, building upon \textit{SciUnit}, is essentiall. We propose a service, called \textit{SciDash}, utilizing existing infrastructure for coordinated development of software repositories, focusing on GitHub \cite{github_url} \cite{ram_git_2013}. A suite of related tests will be contained in a GitHub repository with a stereotyped high-level structure that allows the \textit{SciDash} web application to discover, index and summarize it on an ongoing basis (Fig. \ref{fig:scidash_repo}). The portal, a web application written using the pythonic Django framework \cite{django_url} will serve as a central location where scientists can discover relevant test suites, determine test requirements, and summarize the results of test execution on submitted models. Test results can be visualized as a "record matrix" composed of large numbers of model/test combinations (Table \ref{table:record_matrix} provides a toy example).  Each row in this matrix will contain results for all tests taken by one model and would serve as clear evidence of that model's scope and validity.  Models, tests, and records will be stored on GitHub, pointed to by hyperlinks in the record matrix. \textit{SciDash} will serve as a public record of competition among models, facilitating and encouraging data-driven development among modelers. \textbf{Thus, the second product of this proposal is a web application called \textit{SciDash}, whose back-end can index test suite repositories collaboratively developed on GitHub, and whose front-end offers users a simple environment for discovery and evaluation of models, tests, and results.}  
 
 \subsection{\textit{NeuroUnit}: A Suite of Tests for Neurophysiology}\label{sec:neurounit}
 To demonstrate the utility of these tools, an initial case study must be conducted. Because we have substantial experimental and computational neurophysiology training and expertise, we target the work toward this domain. By using machine-readable models from the Open Source Brain repository, and corresponding machine-readable data from resources like The NeuroElectro Project\todo{URL via citation}, our efforts will produce a body of useful tests that also serve as a demonstration of the test-driven workflow that other areas in the biological sciences can leverage.  \textbf{The third product of this proposal is \textit{NeuroUnit}, a large suite of data-driven tests and model interfaces for a representative set of canonical neurophysiology models, all publicly available. A case study examining the implementation of \textit{NeuroUnit} will inform development of domain specific test-suites in other biology sub-fields.}
@@ -151,36 +187,6 @@ A test suite is a collection of tests designed to validate a model against sever
 \vspace{-7px}\\\verb|spike_tests = sciunit.TestSuite([SpikeWidthTest, SpikeHeightTest])|\\\vspace{-7px}
 \\
 When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the next section. A test suite can also be used to compare multiple models (described below), producing a table as in Table \ref{table:record_matrix}.
-
-\begin{figure}
-\caption{A single neuron firing rate test implemented in \textit{SciUnit}}
-\label{fig:rate_test}
-\begin{python}
-class RateTest(sciunit.Test):
-	def __init__(self, mean, std, input_current):
-		self.mean, self.std, self.input_current = \
-		mean, std, input_current
-	
-	required_capabilities = (
-		neurounit.Capabilities.ReceivesCurrent,
-		neurounit.Capabilities.ProducesFiringRate
-	)
-	
-	def run_test(self, model):
-		model.set_current(self.input_current) 
-		# Implementation guaranteed by capability check.  
-		rate = model.get_firing_rate()
-		
-		mean, std = self.mean, self.std
-		result = (mean - std) <= rate <= (mean - std)
-		return sciunit.scores.BooleanScore(result, related_data={
-			"rate": rate,
-			"mean": mean,
-			"std": std
-		})
-\end{python}
-\vspace{-18px}
-\end{figure}
 
 \subsection{Candidates and Capabilities}
 A \textit{candidate} is the entity to be tested.  In practice, this will usually implementat a particular scientific model, so \textit{candidate} and \textit{model} can be used interchangeably; we distinguish them to allow for the possibility that a candidate itself be a dataset subject to testing.  For clarity, we will refer to candidates as models herein.  A model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|.  In many cases, models can be grouped into parameterized \textit{model families}, as with tests, with parameters passed to an analogous subclass constructor.
@@ -277,6 +283,8 @@ Although NeuroConstruct, NeuroTools, and NeuroElectro do not represent the only 
 \subsection{Public Dissemination}
 Concurrent with these efforts, we are creating a community portal (\textit{SciDash}) written using Django, a Python web framework.  The source code for the web application and the framework will be developed openly and released under a permissive open source license continuously. An open release, rather than one implemented solely behind our portal, supports labs or groups that want to test models on their own machines as they are being developed, or to compare competing models on unreleased data.  So long as a GitHub repository has been forked from the main SciDash repository \cite{scidash_repo_url}, and is publicly visible (the default in GitHub), it will be automatically indexed by and visible on SciDash. The community portal will thus point to models and tests as they become available, and display corresponding test results.  Thus, there will exist a dedicated resource for evaluating the validity of models, and the progress of the SciUnit initiative, including the rate of community adoption, will be transparent.  
 
+The SciDash portal will host scripts that read thes GitHub repositories, run any outstanding tests on new or existing models, and format the results.  In order to quickly populate SciDash with repositories that are both useful and illustrative, we will recapitulate the results of some "settled" competitions in SciDash format, i.e. we will encode the competition rules as tests and SciDash will then index the results.  There are several examples of such settled competitions which have publicly available rules, entries, and published results against which to check \cite{jolivet_quantitative_2008}.  
+
 \subsection{Project Milestones}
 \begin{description}
 \item[Year 1:] We will continue \textit{SciUnit} core development, and implement \textit{NeuroUnit} tests using NeuroElectro data and capabilities using NeuroTools functions.  At the end of this period we will have a manuscript in review, describing the idea and preliminary results, and have released a stable \textit{SciUnit} Python module for general use. 
@@ -315,12 +323,12 @@ After proving its utility in neurophysiology, we would like \textit{SciUnit} to 
 
 % Section 5.
 \section{Community and Educational Outreach}
-\subsection{K-12 Education}
-The cornerstone of basic science education is learning the scientific method.  However, the process by which the scientific method is applied in practice may be too informal to be recognizable to students.  \textit{SciDash} will provide a visible example of the scientific method in practice, determining which hypotheses (models) can withstand the scrutiny of evidence (can pass tests).  Revision of hypotheses to match evidence will also be transparent, as \textit{SciDash} will show and optionally group test results for model variants.  Indeed, OSB already tracks and exposes model revisions, so addition of a testing framework to that project would both implement and present the scientific method for selected models in neuroscience.  The ability to visualize the scientific method at work from any computer in the world will represent a major step forward in science education.  
+\subsection{Education}
+The cornerstone of basic science education is learning the scientific method.  However, the process by which the scientific method is applied in practice may be too informal to be recognizable to students.  \textit{SciDash} will provide a visible example of the scientific method in practice, determining which hypotheses (models) can withstand the scrutiny of evidence (can pass tests).  Revision of hypotheses to match evidence will also be transparent, as \textit{SciDash} will show and optionally group test results for model variants.  Github tracks and exposes revisions, which would include revisions to models as they are refined to match experiments.  The ability to visualize the scientific method at work from any computer in the world will represent a major step forward in science education.  
 
-To make the educational relevance of a validation testing framework more clear, consider teaching the history of advances in cosmology according 
-to the schematic of Table \ref{table:record_matrix}:  here we consider 5 astronomical models and 4 validation tests derived from relevant data.  This record matrix, showing implied test scores, recapitulates the history of cosmology, showing the scientific method to be an on-going process.  The Geocentric model of Claudius Ptolemy (\cite{ptolemy_almagest_150}) passes a test derived from Babylonian records of planetary motion.  Ptolemy's model fails all other tests shown here, including one constructed from Tycho Brahe's more meticulous measurements of planetary motion (\cite{kepler_rudolphine_1627}), being inconsistent with Ptolemy's notion of perfectly circular orbits.  The Copernican Heliocentric model (\cite{copernicus_revolutionibus_1543}) also predicts circular orbits and thus fails Brahe's test, but is far simpler than the Ptolemaic model, dispensing with notions such as "epicycles".  Kepler's laws of planetary motion permit and explain these elliptic orbits (\cite{kepler_astronomia_1609}), as well as Galileo's unanticipated discovery of moons taking elliptic orbits around Jupiter (\cite{galilei_siderius_1610}).  Newton's gravitational model passes these tests and does so by more succinctly by unifying Kepler's laws under one principle: gravity (\cite{newton_philosophiae_1687}).  Newton's model was challenged by the observation of perihelion precession of Mercury (\cite{le_verrier_lettre_1859}).  General Relativity resolved this problem (\cite{einstein_foundation_1916}).  Interestingly, Einstein explicitly proposed 3 tests of his theory, of based on Le Verrier's precession data.  While this account may be simplistic compared with testing practice in modern biology, it would be appropriate for teaching the scientific method to a high school or college student.  Although teaching is not part of the budget request for this proposal, future proposals focused on using \textit{SciUnit} to teach the process of science will be forthcoming.  
-\todo{Add more discussion of teaching, workshops, etc. to get people to understand and use \textit{SciUnit}, as suggested by the reviewer.}  
+As a pedagogical tool, we will provide SciDash repositories for historical case studies.  We show an example in Table \ref{table:record_matrix}: consider 5 astronomical models and 4 validation tests derived from relevant data.  This record matrix, showing implied test scores, recapitulates the history of cosmology, showing the scientific method to be an on-going process.  The Geocentric model of Claudius Ptolemy (\cite{ptolemy_almagest_150}) passes a test derived from Babylonian records of planetary motion.  Ptolemy's model fails all other tests shown here, including one constructed from Tycho Brahe's more meticulous measurements of planetary motion (\cite{kepler_rudolphine_1627}), being inconsistent with Ptolemy's notion of perfectly circular orbits.  The Copernican Heliocentric model (\cite{copernicus_revolutionibus_1543}) also predicts circular orbits and thus fails Brahe's test, but is far simpler than the Ptolemaic model, dispensing with notions such as "epicycles".  Kepler's laws of planetary motion permit and explain these elliptic orbits (\cite{kepler_astronomia_1609}), as well as Galileo's unanticipated discovery of moons taking elliptic orbits around Jupiter (\cite{galilei_siderius_1610}).  Newton's gravitational model passes these tests and does so by more succinctly by unifying Kepler's laws under one principle: gravity (\cite{newton_philosophiae_1687}).  Newton's model was challenged by the observation of perihelion precession of Mercury (\cite{le_verrier_lettre_1859}).  General Relativity resolved this problem (\cite{einstein_foundation_1916}).  Interestingly, Einstein explicitly proposed 3 tests of his theory, of based on Le Verrier's precession data.  While this account may be simplistic compared with testing practice in modern biology, it would be appropriate for teaching the scientific method to a high school or college student.  SciDash will index and highlight case studies such as these for teaching.  
+
+These examples will also serve as a general introduction to SciUnit specifically, which will help with our second outreach effort: engaging students in model building and validation through focused competitions built on SciUnit and tracked using SciDash.  Dr. Aldrich regularly teaches a computer programming class in which students are asked to create artificial lifeforms that must achieve specific objectives.  He will update the curriculum to... \todo{Cyrus, could you elaborate}.  Dr. Crook teaches a computational neuroscience class in which students build models of spiking neurons.  She will being using NeuroUnit to validate that the models achieve the desired output.  In both cases, the use of the SciUnit framework during (and not simply after) development, i.e. test-driven development, will be encouraged.  We believe that adoption of this framework will be most rapid when students learn to test their models as a habit and not an after-thought.  To this end, Dr. Gerkin will sponsor a Google "Summer of Code" application \cite{summerofcode} to fund interested high school students to improve upon existing models in areas of student interest using SciUnit.  The sponsor ultimately selects from among the applicants, and we will actively seek minority and female applicants for this project.  
 
 \begin{wraptable}[10]{r}{0.7\columnwidth}
 \caption{A record matrix illustrating models and data-driven tests from the history of cosmology. Each row is a model; each column is a test.}
@@ -337,102 +345,71 @@ to the schematic of Table \ref{table:record_matrix}:  here we consider 5 astrono
 \end{wraptable}
 \leavevmode
 
-\subsubsection{Journalistic Media}
+\subsection{Journalistic Media}
 When reporting on new scientific theories, lay members of the media have no reliable way to determine the importance or quality of such theories.  Direct consultation of scientists may be unreliable, due to bias or lack of focused expertise.  However, \textit{SciDash} would -- for any model that it covers -- provide an unbiased way for media members to identify the scope and validity of a model, and contrast this with previous efforts.  With the original sources of models and tests well-documented, contributors could be contacted for comment or explanation.  Site-embedded commentary provided by modelers and test-writers should also be a helpful media resource.  
 
 The competitive nature of \textit{SciDash} will be appealing both to scientists and to the lay community.  Competitions for machine learning, solar cars, and autonomous vehicles already draw considerable media coverage and we believe that the brain is of no less interest to the public.  Public competitions also welcome teams who may not yet have academic credentials, such as students, both to learn the craft and possibly to demonstrate key insights not previously recognized in the professional scientific community.  
+
+Because the project is open at every level, links embedded in social media will provide a path of minimal resistance for anyone to explore the project and the models and tests that give it life.  In the third year we plan to actively promote the idea by getting coverage in media of interest to the targeted communities, via Twitter and popular blogs that increasingly cover "open" developments in science.  While such avenues may not have much import to senior scientists, they are critical to communicating with the next generation of scientists who have not yet established a go-to modeling workflow.   
 
 % Section 6.
 \section{Personnel and Coordination}
 \renewcommand{\theenumi}{\alph{enumi}}
 A scientific software framework succeeds in proportion to its rate of adoption, which is driven in part by: \textbf{Relevance} to the needs of both experimental and theoretical scientists;
-\textbf{Quality} of architecture and usability; \textbf{Conformance} to accepted data and modeling standards in the targeted communities; \textbf{Integration} with existing software tools; \textbf{Applicability} to outstanding questions in a field; \textbf{Community} access (i.e. an open and accessible internet presence).
+\textbf{Quality} of architecture and usability; \textbf{Conformance} to accepted data and modeling standards in the targeted communities; \textbf{Integration} with existing software tools; \textbf{Applicability} to outstanding questions in a field; \textbf{Community} access (i.e. an open and accessible internet presence). We have the appropriate team members to meet these criteria. 
 \todo{Make sure to get each of these terms in the personnel descriptions below as often as possible without being annoying.}
 
-\subsection{Personnel}
-We have the appropriate team members to meet the criteria above. 
-\\
-\\
-\textbf{[PI: Richard C Gerkin, PhD]}
-\begin{description}
-\item[Title:] Assistant Research Professor, School of Life Sciences, Arizona State University (ASU)
-\item[Expertise:] Neurophysiology, computational models, informatics, web development.   
-\item[Role (Time):] Will coordinate all project activities (25 hrs/week).  
-\item[Detail:] As the main PI, he will coordinate all project activities, and be responsible for all output including code, databases, and manuscripts. He will also: coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data (experience as both an experimentalist and a modeler will facilitate this objective (\textbf{Relevance})); write NeuroML-related bindings (e.g. \verb|NeuroConstructModel|) (\textbf{Conformance}); subject models from OSB (and similar models publicly available) to these tests; develop and maintain the \textit{SciDash} website (\textbf{Community}); coordinate with the developers of OSB to implement automated \textit{SciUnit} testing.
-\end{description}
+\subsection{PIs}
 
-\textbf{[Co-PI: Sharon M Crook, PhD]}
-\begin{description}
-\item[Title:] Associate Professor, School of Mathematical and Statistical Sciences, School of Life Sciences, ASU
-\item[Expertise:] Neuroinformatics, Computational Modeling
-\item[Role (Time):] Interface of \textit{SciUnit} with NeuroML and Open Source Brain (2 hrs/week)
-\item[Detail:] Access to the broader neuroscience community requires the use of an accepted model description standard.  We chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML and will help us use NeuroML for model specification (\textbf{Conformance}).  
-\end{description}
-\textbf{[Co-PI: Jonathan Aldrich, PhD]}
-\begin{description}
-\item[Title:] Associate Professor, School of Computer Science and Institute for Software Research, CMU
-\item[Expertise:] Software engineering, software verification and validation, human factors
-\item[Role (Time):] Guide overall software architecture (2 hrs/week)
-\item[Detail:] Dr. Aldrich will supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure \textbf{quality}.  While Mr. Omar will be writing code, Dr. Aldrich will be providing guidance on the overall structure of the implementation.  Dr. Aldrich is already Mr. Omar's graduate supervisor (funded by other sources), but for this project Dr. Aldrich will take on the additional training responsibilities specific to the focus of this proposal.  
-\end{description}
-\textbf{[Junior Personnel, Cyrus Omar]}
-\begin{description}
-\item[Title:] Predoctoral Fellow, School of Computer Science, CMU
-\item[Expertise:] Computational models and computer science 
-\item[Role (Time):] Core framework design and development (25 hrs/week)
-\item[Detail:] Mr. Omar is a senior graduate student who has expertise in both computational modeling in neuroscience and software infrastructure for science.  He will be responsible for guiding the overall software architecture of the project (\textbf{Quality}) and developing and maintaining the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about practicalities of model testing, which will inform revisions to the code.  
-\end{description}
-\textbf{[Collaborator, R. Angus Silver, PhD]}
-\begin{description}
-\item[Title:] Professor of Neuroscience and Wellcome Trust Senior Research Fellow, Faculty of Life Sciences, University College, London
-\item[Expertise:] Neurophysiology, computational neuroscience and neuroinformatics  
-\item[Role:] Interface of \textit{SciUnit} with NeuroML and Open Source Brain
-\item[Detail:] A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Wellcome Trust.  The OSB team has welcomed us to integrate \textit{SciUnit} into OSB for automated model testing(\textbf{Integration}).  This exposes a wide range of neuroscience models specified in NeuroML (\textbf{Applicability}), and in turn exposes the project to the international neuroscience modeling community, serving as proof of concept for expansion into other areas of biology.  
-\end{description}
-\textbf{[Collaborator, Shreejoy Tripathy, PhD]}
-\begin{description}
-\item[Title:] Research Fellow, Dept. of Biological Sciences, CMU
-\item[Expertise:] Neuroinformatics, computational neuroscience, data mining.    
-\item[Role:] Interface of \textit{SciUnit} with NeuroElectro
-\item[Detail:] A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest data repository concerning electrophysiological properties of neurons.  This provides us a wide range of data for testing neuroscience models.  Tripathy will facilitiate \textbf{integration} with NeuroElectro through further development of the API.  
-\end{description}
+\textbf{Richard C Gerkin, PhD} (25 hrs/week) has expertise in experimental and computational neurophysiology, neuroinformatics, and web development.  He will coordinate all project activities and be responsible for all output including code, databases, and manuscripts. He will also: coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data (experience as both an experimentalist and a modeler will facilitate this objective (\textbf{Relevance})); write NeuroML-related bindings (e.g. \verb|NeuroConstructModel|) (\textbf{Conformance}); subject models from OSB (and similar models publicly available) to these tests; develop and maintain the \textit{SciDash} website (\textbf{Community}); coordinate with the developers of OSB to implement automated \textit{SciUnit} testing.
+
+\textbf{Sharon M Crook, PhD} (2 hrs/week) has expertise in mathematics, computational modeling, and neuroinformatics.  She will help interface \textit{NeuroUnit} to NeuroML and Open Source Brain. Access to the broader neuroscience community requires the use of an accepted model description standard.  We chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML and will help us use NeuroML for model specification (\textbf{Conformance}).  She will also assist with graduate training as needed.  
+
+\textbf{Jonathan Aldrich, PhD} (2 hrs/week) has expertise in software engineering, software verification and validation, and human factors in software design. He will guide overall software architecture and supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure \textbf{quality}.  While Mr. Omar will be writing code, Dr. Aldrich will be providing guidance on the overall structure of the implementation.  Dr. Aldrich is already Mr. Omar's graduate supervisor (funded by other sources), but for this project Dr. Aldrich will take on the additional training responsibilities specific to the focus of this proposal.  
+
+\subsection{Key Personnel and Collaborators}
+\textbf{Cyrus Omar} (25 hrs/week) is senior graduate student with expertise in computational modeling in neuroscience, computer science, and software infrastructure for science.  He will guide core framework design and development and overall software architecture (\textbf{Quality}) and develop and maintain the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about practicalities of model testing, which will inform revisions to the code.  
+
+\textbf{R. Angus Silver, PhD} is a full professor with expertise in neurophysiology, computational neuroscience and neuroinformatics.  
+A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Wellcome Trust.  
+The OSB team has welcomed us to integrate \textit{SciUnit} into OSB for automated model testing (\textbf{Integration}).  
+This exposes a wide range of neuroscience models specified in NeuroML (\textbf{Applicability}), and in turn exposes the project to the international neuroscience modeling community, serving as proof of concept for expansion into other areas of biology.  
+
+\textbf{Shreejoy Tripathy, PhD} is a recent doctoral awardee with expertise in neuroinformatics, computational neuroscience, and data mining.  A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest data repository concerning electrophysiological properties of neurons.  He will help further integrate \textit{NeuroUnit} with NeuroElectro through API development, providing a wide range of data for testing neuroscience models.  
 
 \subsection{Means of Coordination}
 Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
 
 % Section 7.
-\section{Results from Prior NSF Work}
-Sharon Crook was PI on NSF II-0613404, CRCNS: Behaviorally Relevant Neuronal Modification during Postembryonic Development, which was funded from 10/06 through 9/10. This work examined how dendritic structure and synapse distributions follow functional architecture principles that relate directly to a neuron’s individual behavioral requirements in holometabolous insects, such as Manduca sexta and Drosophila melanogaster. The modeling activities focused on flight motoneurons, which generally transform from tonically firing larval crawling motoneurons into phasically firing adult flight motoneurons. This ongoing work contributed to four publications so far \cite{hohensee,meseke,herrera-valdez_2012,herrera-valdez_jcns_2013} with two more in review, as well as seven published abstracts \cite{jennings_2007,herrera-valdez_2009,berger_2009,herrera-valdez_2010,smith_2011,berger_2012,berger_2013}, and 12 poster or oral presentations at conferences. It also provided partial funding for training opportunities for five graduate students and a postdoctoral researcher.
-
-
-\bfhead{Jonathan Aldrich - Intellectual Merit} In his work on NSF CAREER grant
+\section{Current and Previous NSF Funding}
+\bfhead{Sharon Crook: [Intellectual Merit]} Sharon Crook was PI on NSF II-0613404, \$457,654, CRCNS: Behaviorally Relevant Neuronal Modification during Postembryonic Development, which was funded from 10/06 through 9/10. 
+This work examined how dendritic structure and synapse distributions follow functional architecture principles that relate directly to a neuron's individual behavioral requirements in holometabolous insects, such as \textit{Manduca sexta} and \textit{Drosophila melanogaster.} 
+The modeling and experimental activities focused on flight motoneurons, which generally transform from tonically firing larval crawling motoneurons into phasically firing adult flight motoneurons. 
+This ongoing work has contributed to five publications so far \cite{hohensee, meseke, herrera-valdez_2012, ryglewski_2012, herrera-valdez_jcns_2013} with two more manuscripts in review, 
+as well as seven published abstracts \cite{jennings_2007, herrera-valdez_2009, berger_2009, herrera-valdez_2010, smith_2011, berger_2012, berger_2013}. 
+It also contributed to 12 poster or oral presentations at conferences and workshops. 
+\bfhead{[Broader Impacts]} This grant also provided partial funding for training opportunities for four graduate students, including three women, and a postdoctoral researcher who is a Hispanic male. 
+\\\\
+\bfhead{Jonathan Aldrich: [Intellectual Merit]} In his work on NSF CAREER grant
 CCF-0546550, ``Lightweight Modeling and Enforcement of
 Architectural Behavior'' (2006-2010, \$500,000), Aldrich and his
 students developed a new approach to extracting
 run-time architectures from code and analyzing their
 behavior, producing 12 major conference\footnote{note that in the field of computer science, major conferences are more prestigious than journals} and journal publications and numerous workshop papers,
 including~\cite{AAC07,bierhoff07:modular_typestate_checking,AAN+08,AA07a,AA07b,AA08d,AA09a,AA09b,AB10}.
-%More recently, Aldrich's work has been supported by NSF
-%grants CCF-0811592 and CCF-1116907, which have led to 8
-%major publications so far focused on language design
-%and analysis approaches to verifying protocols of
-%interaction between objects and proving safety
-%properties of concurrent systems~\cite{beckman08:verifying_atomic,bierhoff09:plural,JA09,aldrich11:plaid,sunshine11:plaid,naden12:borrowing,hannesPlural,PradelAPI13}.  The DUE-1140760 project, just a year old now, has produced preliminary results on design education~\cite{Cai13}.
-\textbf{Broader Impacts:} The NSF grant mentioned above, and 3 others, have contributed to the education of 11 Ph.D. students, including 4 women, and at least that many undergraduate or master's students.  The grants have also supported the development and release of a number of open-source tools,
+%More recently, Aldrich's work has been supported by NSF grants CCF-0811592 and CCF-1116907, 
+%which have led to 8 major publications so far focused on language design and analysis approaches to verifying protocols of interaction between objects and proving safety
+%properties of concurrent systems~\cite{beckman08:verifying_atomic,bierhoff09:plural,JA09,aldrich11:plaid,sunshine11:plaid,naden12:borrowing,hannesPlural,PradelAPI13}.  
+%The DUE-1140760 project, just a year old now, has produced preliminary results on design education \cite{Cai13}.
+\textbf{[Broader Impacts]} The NSF grant mentioned above, and 3 others, have contributed to the education of 11 Ph.D. students, including 4 women, and at least that many undergraduate or master's students.  The grants have also supported the development and release of a number of open-source tools,
 including ArchJava \cite{ArchJava}, Plural \cite{pluraltool}, Crystal \cite{Crystal}, and SASyLF
 \cite{SASyLF}. All of these tools, in addition to educational methodologies developed in the grants, have been used in education at
 Carnegie Mellon and at other institutions.  Recognition of the broader impacts of
 Aldrich's work on software architecture include the 2007 Dahl-Nygaard
 Junior Prize and an ICSE most influential paper award.
-
-
-
-
-
-\todo{Document officially ends here for page count purposes.  Must be under 15 pages.}
+%\todo{Document officially ends here for page count purposes.  Must be under 15 pages.}
 \bibliographystyle{unsrt}
-\bibliography{references,references_crook,urls,references_ja}\todo{Remove bibliography with nobibliography tag before submission}
-
-\listoftodos
+\nobibliography{references,references_crook,urls,references_ja}%\todo{Remove bibliography with nobibliography tag before submission}
+%\listoftodos
 \end{document}
 
