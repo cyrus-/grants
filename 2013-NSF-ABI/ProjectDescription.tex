@@ -62,7 +62,37 @@ The first product of this proposal is a simple validation testing framework to s
 
 A validation test in SciUnit is an instance of a Python class implementing the \verb|sciunit.Test|\todo{use a better tt font} interface. Classes that implement this interface must contain a \verb|run_test| method that receives a model as input and produces a normalized score as output. The capabilities that the model must possess in order for the test to operate correctly are given using the \verb|required_capabilities| attribute. In many cases, several tests will have a similar form, differing only by a choice of parameters or by association with a particular dataset. Such parameterized test families correspond to subclasses of \verb|sciunit.Test| that take the needed parameters as constructor arguments. 
 
-In the example below, the RateTest class implements a parameterized family of tests that compare the output firing rate (action potentials per second) of a neuronal model, driven by a given somatic input current, to an empirically measured mean and standard deviation of the rate derived from a set of replicated experiments. The test produces a boolean score indicating agreement within one standard deviation of the empirical mean. The input currents, mean, and standard deviation are provided as constructor arguments on line 2 (constructors are named \verb|__init__| in Python.) On lines 5-8, the required capabilities are listed: the model must be able to take a current as input and produce firing rates as output. These capabilities are used in the \verb|run_test| method, on lines 11 and 12 respectively, to execute the model against the provided current. The resulting firing rate is compared to the empirical mean and standard deviation on line 15 and a boolean score is produced on lines 16-20. In addition to the boolean value itself, the score also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the model's output rate and the provided mean and standard deviation alongside the result, by specifying the \verb|related_data| parameter.
+\begin{figure}
+\caption{A single neuron firing rate test implemented in \textit{SciUnit}}
+\label{fig:rate_test}
+\begin{python}
+class RateTest(sciunit.Test):
+	def __init__(self, mean, std, input_current):
+		self.mean, self.std, self.input_current = \
+		mean, std, input_current
+	
+	required_capabilities = (
+		neurounit.Capabilities.ReceivesCurrent,
+		neurounit.Capabilities.ProducesFiringRate
+	)
+	
+	def run_test(self, model):
+		model.set_current(self.input_current) 
+		# Implementation guaranteed by capability check.  
+		rate = model.get_firing_rate()
+		
+		mean, std = self.mean, self.std
+		result = (mean - std) <= rate <= (mean - std)
+		return sciunit.scores.BooleanScore(result, related_data={
+			"rate": rate,
+			"mean": mean,
+			"std": std
+		})
+\end{python}
+\vspace{-18px}
+\end{figure}
+
+In the example from Figure \ref{fig:rate_test}, the RateTest class implements a parameterized family of tests that compare the output firing rate (action potentials per second) of a neuronal model, driven by a given somatic input current, to an empirically measured mean and standard deviation of the rate derived from a set of replicated experiments. The test produces a boolean score indicating agreement within one standard deviation of the empirical mean. The input currents, mean, and standard deviation are provided as constructor arguments on line 2 (constructors are named \verb|__init__| in Python.) On lines 5-8, the required capabilities are listed: the model must be able to take a current as input and produce firing rates as output. These capabilities are used in the \verb|run_test| method, on lines 11 and 12 respectively, to execute the model against the provided current. The resulting firing rate is compared to the empirical mean and standard deviation on line 15 and a boolean score is produced on lines 16-20. In addition to the boolean value itself, the score also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the model's output rate and the provided mean and standard deviation alongside the result, by specifying the \verb|related_data| parameter.  \todo{Can the test output a standard measure of agreement in addition to the boolean value and the related data?}
 
 To create a validation test, a scientist instantiates the RateTest class with a particular mean, standard deviation and input current (I, not shown):
 
@@ -75,14 +105,18 @@ The test is then executed against a model instance (described below), using the 
 The sciunit.run function operates in three phases, implementing the abstractions at the beginning of section 3:
 (1)	Capability Checking: The model is verified as capable of taking the test by checking each capability in the test's \verb|required_capabilities| attribute.
 (2)	Test Execution: The test's \verb|run_test| method is called to execute the model and cache output.
-(3)	Output Validation: \verb|run_test| returns an instance of a sciunit.Score subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
+(3)	Output Validation: \verb|run_test| returns an instance of a \verb|sciunit.Score| subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.
 
 Any errors that occur during this process are reported by raising an appropriate exception.
 
 \subsection{Test Suites}
-A test suite is a collection of tests designed to validate a model against several mutually coherent requirements.
+A test suite is a collection of tests designed to validate a model against several mutually coherent requirements:
 
-\verb|urban_tests = sciunit.TestSuite([mitral_cell_rate_test, mitral_cell_interval_test])|
+\noindent
+\verb|urban_tests = sciunit.TestSuite([mitral_cell_rate_test, \|
+
+\noindent
+\verb|                                 mitral_cell_interval_test])|
 
 When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the next section.
 
@@ -151,36 +185,6 @@ A test suite is a collection of tests designed to validate a model against sever
 \vspace{-7px}\\\verb|spike_tests = sciunit.TestSuite([SpikeWidthTest, SpikeHeightTest])|\\\vspace{-7px}
 \\
 When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the next section. A test suite can also be used to compare multiple models (described below), producing a table as in Table \ref{table:record_matrix}.
-
-\begin{figure}
-\caption{A single neuron firing rate test implemented in \textit{SciUnit}}
-\label{fig:rate_test}
-\begin{python}
-class RateTest(sciunit.Test):
-	def __init__(self, mean, std, input_current):
-		self.mean, self.std, self.input_current = \
-		mean, std, input_current
-	
-	required_capabilities = (
-		neurounit.Capabilities.ReceivesCurrent,
-		neurounit.Capabilities.ProducesFiringRate
-	)
-	
-	def run_test(self, model):
-		model.set_current(self.input_current) 
-		# Implementation guaranteed by capability check.  
-		rate = model.get_firing_rate()
-		
-		mean, std = self.mean, self.std
-		result = (mean - std) <= rate <= (mean - std)
-		return sciunit.scores.BooleanScore(result, related_data={
-			"rate": rate,
-			"mean": mean,
-			"std": std
-		})
-\end{python}
-\vspace{-18px}
-\end{figure}
 
 \subsection{Candidates and Capabilities}
 A \textit{candidate} is the entity to be tested.  In practice, this will usually implementat a particular scientific model, so \textit{candidate} and \textit{model} can be used interchangeably; we distinguish them to allow for the possibility that a candidate itself be a dataset subject to testing.  For clarity, we will refer to candidates as models herein.  A model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|.  In many cases, models can be grouped into parameterized \textit{model families}, as with tests, with parameters passed to an analogous subclass constructor.
