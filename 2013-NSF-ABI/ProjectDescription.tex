@@ -216,6 +216,7 @@ When a test suite is executed against a model, it produces summary data that can
 
 \subsection{Candidates and Capabilities}
 A \textit{candidate} is the entity to be tested.  In practice, this will usually implementat a particular scientific model, so \textit{candidate} and \textit{model} can be used interchangeably; we distinguish them to allow for the possibility that a candidate itself be a dataset subject to testing.  For clarity, we will refer to candidates as models herein.  A model is represented by an instance of a class inheriting from \verb|sciunit.Candidate|.  In many cases, models can be grouped into parameterized \textit{model families}, as with tests, with parameters passed to an analogous subclass constructor.
+\todo{What does it mean for "a candidate itself be a dataset subject to testing"?}
 
 In order for a model to be tested, it must have certain \textit{capabilities} that the test requires.  That is, the model must be capable of taking certain kinds of input and generating certain kinds of output that the test will use to evaluate its validity.  A \textit{capability} is a contract guaranteeing that a model is able to produce results of a particular form. We model capabilities as Python classes containing unimplemented methods. In other object-oriented languages, this corresponds to an \textit{interface} or an abstract class.  
 
@@ -479,6 +480,13 @@ The OSB team has welcomed us to integrate \textit{SciUnit} into OSB for automate
 This exposes a wide range of neuroscience models specified in NeuroML (\textbf{Applicability}), and in turn exposes the project to the international neuroscience modeling community, serving as proof of concept for expansion into other areas of biology.  
 
 \textbf{Shreejoy Tripathy, PhD} is a recent doctoral awardee with expertise in neuroinformatics, computational neuroscience, and data mining.  A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest data repository concerning electrophysiological properties of neurons.  He will help further integrate \textit{NeuroUnit} with NeuroElectro through API development, providing a wide range of data for testing neuroscience models.  
+
+% Other potential collaborators (not necessarily all listed):
+% Michael Hines (NEURON)
+% OpenWorm guys
+% Anyone with a modeling course
+% Tim Verstynen
+% Others?  
 
 \subsection{Means of Coordination}
 Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
