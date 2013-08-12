@@ -22,6 +22,8 @@ top    = 1in,
 bottom = 1in,
 left   = 1in,
 right  = 1in]{geometry}
+\usepackage{caption}
+\captionsetup{belowskip=0pt,aboveskip=0pt}
 \linespread{0.92} % NSF allows up to 6 lines per inch.  
 \def\UrlFont{\em} % Italicize all URLs.  
 \frenchspacing
@@ -107,7 +109,7 @@ class SpikeCountTest(sciunit.Test):
       "obs_stds": stds
     })
 \end{python}
-\vspace{-15px}
+\vspace{-5px}
 \caption{A single neuron spike count test family implemented in \textit{SciUnit}}
 \label{fig:rate_test}
 \vspace{-10px}
@@ -147,7 +149,7 @@ class SpikeCountFromCurrent(sciunit.Capability):
     produces an integer spike count. Can be called multiple times."""
     raise NotImplementedError("Model does not implement capability.")
 \end{python}
-\vspace{-15px}
+%\vspace{-15px}
 \caption{An example capability specifying a single required method.}
 \label{fig:capability}
 \end{figure}
@@ -228,7 +230,7 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 \section{Preliminary Activities}
 
 \subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}.  We implemented it using the Python programming language\cite{python} due to its widespread adoption across the quantitative sciences. Python also supports interoperability with other major languages used within science, including C, R\cite{r_url}, and MATLAB\cite{matlab_url}. The functionality we have described could also be readily translated into any programming language with comparable facilities.  Table \ref{table:glossary} provides definitions of terms.  
- 
+
 \begin{table}[h]\footnotesize
 \caption{Glossary of Terms}
 \label{table:glossary}
@@ -290,8 +292,9 @@ class CA1PyramidalCellModel(NeuroConstructModel,
 		candidates.NeuroConstructModel.__init__(self,project_path,**kwargs)
 		super(CA1PyramidalCellModel,self).__init__(**kwargs)
 \end{python}
-\vspace{-15px}
+\vspace{-5px}
 \caption{A candidate class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
+\vspace{-10px}
 \end{figure}
 %\leavevmode
 
@@ -372,6 +375,7 @@ As a pedagogical tool, we will provide SciDash repositories for historical case 
 These examples will also serve as a general introduction to SciUnit specifically, which will help with our second outreach effort: engaging students in model building and validation through focused competitions built on SciUnit and tracked using SciDash.  Dr. Aldrich regularly teaches a computer programming class in which students are asked to create artificial lifeforms that must achieve specific objectives.  He will update the curriculum to... \todo{Cyrus, could you elaborate}.  Dr. Crook teaches a computational neuroscience class in which students build models of spiking neurons.  She will being using NeuroUnit to validate that the models achieve the desired output.  In both cases, the use of the SciUnit framework during (and not simply after) development, i.e. test-driven development, will be encouraged.  We believe that adoption of this framework will be most rapid when students learn to test their models as a habit and not an after-thought.  To this end, Dr. Gerkin will sponsor a Google "Summer of Code" application\cite{summerofcode} to fund interested high school students to improve upon existing models in areas of student interest using SciUnit.  The sponsor ultimately selects from among the applicants, and we will actively seek minority and female applicants for this project.  
 
 \begin{wraptable}[10]{r}{0.7\columnwidth}
+\vspace{-7px}
 \caption{A record matrix illustrating models and data-driven tests from the history of cosmology. Each row is a model; each column is a test.}
 \label{table:record_matrix}
 \begin{tabular}{| c | c | c | c | c | c | c }
@@ -384,12 +388,23 @@ These examples will also serve as a general introduction to SciUnit specifically
 	\textbf{Einstein} & High & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} & \textcolor{ForestGreen}{Pass} \\ \hline
 \end{tabular}
 \end{wraptable}
-\leavevmode
+%\leavevmode
+
+These examples will also serve as a general introduction to SciUnit specifically, which will help with our second outreach effort: engaging students in model building and validation through focused competitions built on SciUnit and tracked using SciDash.
+Dr. Aldrich regularly teaches a computer programming class in which students are asked to create artificial lifeforms that must achieve specific objectives.
+He will update the curriculum to specify desired lifeform behavior using SciUnit-style tests, emphasizing to students the connection between modeling and the scientific method.
+Dr. Crook teaches a computational neuroscience class in which students build models of spiking neurons.
+She will being using NeuroUnit to validate that the models achieve the desired output.
+In both cases, the use of the SciUnit framework during (and not simply after) development, i.e. test-driven development, will be encouraged.
+We believe that adoption of this framework will be most rapid when students learn to test their models as a habit and not an after-thought.
+To this end, Dr. Gerkin will sponsor a Google ``Summer of Code'' application \cite{summerofcode} to fund interested high school students to improve upon existing models in areas of student interest using SciUnit.
+The sponsor ultimately selects from among the applicants, and we will actively seek minority and female applicants for this project.  
+
 
 \subsection{Journalistic Media}
 Lay members of the media have no reliable way to determine the importance or quality of theories upon which they report.  Direct consultation of scientists suffers from by bias and possible lack of available expertise.  However, \textit{SciDash} will provide a less biased way for non-experts to identify model scope and validity, and compare these amongst competing models.  With model and test sources well-documented in commit logs and code headers, contributors may be contacted for comment.  Commentary embedded in GitHub repository issue tracking should also be a helpful media resource.  
 
-\textit{SciDash}'s competitive nature will be appealing both to scientists and to the lay community.  Competitions for machine learning, solar cars, and autonomous vehicles already draw considerable media coverage and biology (and the brain) is of no less interest to the public.  Public competitions also welcome teams without academic credentials, such as students, to both learn the craft and possibly demonstrate key insights missed by professional scientiists.  
+\textit{SciDash}'s competitive nature will be appealing both to scientists and to the lay community.  Competitions for machine learning, solar cars, and autonomous vehicles already draw considerable media coverage and biology (and the brain) is of no less interest to the public.  Public competitions also welcome teams without academic credentials, such as students, to both learn the craft and possibly demonstrate key insights missed by professional scientists.  
 
 With projects open at every level, links embedded in social media can kindle public exploration of the models and tests that give them life.  We will actively promote this framework by targeting media of interest to the relevant communities, via Twitter and blogs that increasingly cover "open" developments in scientific practice.  Such avenues may have little import to senior scientists, but they are critical to communicating to the next generation's scientists, who have not yet established a go-to modeling workflow.   
 
