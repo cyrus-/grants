@@ -80,7 +80,7 @@ This workflow continuously produces a summary of the field indicating which mode
 Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML\cite{neuroml_url,gleeson_neuroml:_2010}) and interface definition languages (IDLs)\cite{bachmann2008}\todo{Fix reference} are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} 
 
 \begin{figure}
-\vspace{-50px}
+
 \begin{python}
 class SpikeCountTest(sciunit.Test):
   """Tests a model that generates spike counts from currents.
@@ -204,7 +204,6 @@ The \verbx{sciunit.run} function operates in three phases: \textbf{(1) Capabilit
 
 \subsection{\textit{SciUnit} Test Suites}
 A test suite is a collection of tests designed to validate a model against several mutually coherent requirements, i.e. various summaries of the data.  The following is a test suite that could be used for the QSNMC.  
-
 \begin{python}
 CA1_suite = sciunit.TestSuite([CA1_sc_test, CA1_sl_test, CA1_sv_test,CA1_isi_test, CA1_ism_test])
 \end{python}
@@ -231,7 +230,28 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 
 \subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}.  We implemented it using the Python programming language\cite{python} due to its widespread adoption across the quantitative sciences. Python also supports interoperability with other major languages used within science, including C, R\cite{r_url}, and MATLAB\cite{matlab_url}. The functionality we have described could also be readily translated into any programming language with comparable facilities.  Table \ref{table:glossary} provides definitions of terms.  
 
-\begin{table}[h]\footnotesize
+\begin{figure}
+\begin{python}
+class CA1PyramidalCellModel(NeuroConstructModel,
+				            capabilities.ReceivesCurrent):
+	"""CA1 Pyramidal Cell model from /neuroConstruct/osb/hippocampus/
+	CA1_pyramidal_neuron/CA1PyramidalCell"""
+	def __init__(self,**kwargs):
+		# Put any other initialization here.
+		project_path = os.path.join(candidates.putils.OSB_MODELS,
+									"hippocampus",
+									"CA1_pyramidal_neuron",
+									"CA1PyramidalCell",
+									"neuroConstruct")
+		candidates.NeuroConstructModel.__init__(self,project_path,**kwargs)
+		super(CA1PyramidalCellModel,self).__init__(**kwargs)
+\end{python}
+%\vspace{-15px}
+\caption{A candidate class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
+\label{fig:ca1_model}
+\end{figure}
+
+ \begin{table}[h]\footnotesize
 \caption{Glossary of Terms}
 \label{table:glossary}
 \begin{tabular}{| c | p{13cm} |}
@@ -371,8 +391,6 @@ After covering neurophysiology, we would like \textit{SciUnit} to expand across 
 The scientific method is a cornerstone of basic science education.  However, its application in professional science is often informal and therefore of limited pedagogical value.    \textit{SciDash} will provide a window to the scientific method in practice, illustrating which hypotheses (models) withstand the scrutiny of evidence (pass tests).  Hypothesis (model) revision will be transparent through version control and repository lineage on GitHub.  The ability to visualize the scientific method in practice from any computer in the world will represent a major step forward in science education.  
 
 As a pedagogical tool, we will provide SciDash repositories for historical case studies.  For example, Table \ref{table:record_matrix} summarizes 5 astronomical models and 4 validation tests derived from, and recapitulating, the history of cosmology.  This shows the scientific method to be an on-going process.  Ptolemy's geocentric model\cite{ptolemy_almagest_150} passes a test derived from Babylonian records of planetary motion.  Ptolemy's model fails other tests shown here, including one constructed from Brahe's more meticulous measurements\cite{kepler_rudolphine_1627}, these data falsifying Ptolemy's hypothesis of circular orbits.  The Copernican heliocentric model\cite{copernicus_revolutionibus_1543} also uses circular orbits and thus fails Brahe's test, but is simpler than Ptolemy's model, dispensing with "epicycles".  Kepler's laws of planetary motion permit elliptic orbits\cite{kepler_astronomia_1609}, as well as Galileo's unanticipated discovery of elliptic orbits among Jupiter's moons\cite{galilei_siderius_1610}.  Newton's model passes these tests and does so succinctly by unifying Kepler's laws under the principle of gravity\cite{newton_philosophiae_1687}.  Newton's model cannot explain Mercury's perihelion precession\cite{le_verrier_lettre_1859}, solved only by General Relativity\cite{einstein_foundation_1916}.  This account is simplistic compared with testing practice in modern biology, but it is appropriate for pre-baccalaureate teaching.  SciDash will index and highlight such case studies for teaching.  
-
-These examples will also serve as a general introduction to SciUnit specifically, which will help with our second outreach effort: engaging students in model building and validation through focused competitions built on SciUnit and tracked using SciDash.  Dr. Aldrich regularly teaches a computer programming class in which students are asked to create artificial lifeforms that must achieve specific objectives.  He will update the curriculum to... \todo{Cyrus, could you elaborate}.  Dr. Crook teaches a computational neuroscience class in which students build models of spiking neurons.  She will being using NeuroUnit to validate that the models achieve the desired output.  In both cases, the use of the SciUnit framework during (and not simply after) development, i.e. test-driven development, will be encouraged.  We believe that adoption of this framework will be most rapid when students learn to test their models as a habit and not an after-thought.  To this end, Dr. Gerkin will sponsor a Google "Summer of Code" application\cite{summerofcode} to fund interested high school students to improve upon existing models in areas of student interest using SciUnit.  The sponsor ultimately selects from among the applicants, and we will actively seek minority and female applicants for this project.  
 
 \begin{wraptable}[10]{r}{0.7\columnwidth}
 \vspace{-7px}
