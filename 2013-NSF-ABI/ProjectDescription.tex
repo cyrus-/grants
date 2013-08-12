@@ -466,27 +466,33 @@ With projects open at every level, links embedded in social media can kindle pub
 % Section 6.
 \section{Personnel and Coordination}
 \renewcommand{\theenumi}{\alph{enumi}}
-A scientific software framework succeeds in proportion to its rate of adoption, which is driven in part by: \textbf{Relevance} to the needs of both experimental and theoretical scientists;
-\textbf{Quality} of architecture and usability; \textbf{Conformance} to accepted data and modeling standards in the targeted communities; \textbf{Integration} with existing software tools; \textbf{Applicability} to outstanding questions in a field; \textbf{Community} access (i.e. an open and accessible internet presence). We have the appropriate team members to meet these criteria. 
+A scientific software framework succeeds by being used, which depends upon: 
+\textbf{Relevance} to the needs scientists; 
+\textbf{Quality} of architecture and usability; 
+\textbf{Conformance} to standards in targeted communities; 
+\textbf{Integration} with existing software tools; 
+\textbf{Applicability} to outstanding questions in a field; 
+\textbf{Community} access (i.e. an accessible internet presence). 
+We have the appropriate team members to meet these criteria. 
 \todo{Make sure to get each of these terms in the personnel descriptions below as often as possible without being annoying.}
 
 \subsection{PIs}
 
-\textbf{Richard C Gerkin, PhD} (25 hrs/week) has expertise in experimental and computational neurophysiology, neuroinformatics, and web development.  He will coordinate all project activities and be responsible for all output including code, databases, and manuscripts. He will also: coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from the data (experience as both an experimentalist and a modeler will facilitate this objective (\textbf{Relevance})); write NeuroML-related bindings (e.g. \verbx{NeuroConstructModel}) (\textbf{Conformance}); subject models from OSB (and similar models publicly available) to these tests; develop and maintain the \textit{SciDash} website (\textbf{Community}); coordinate with the developers of OSB to implement automated \textit{SciUnit} testing.
+\textbf{Richard C Gerkin, PhD} (25 hrs/week) has expertise in experimental and computational neurophysiology, neuroinformatics, and web development.  He will coordinate all project activities and be responsible for all output. He will also: coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, format and annotate this data, and construct tests from data (experience as both an experimentalist and a modeler, across many scales, will facilitate this objective (\textbf{Relevance})); write NeuroML-related bindings (e.g. \verbx{NeuroConstructModel}) (\textbf{Conformance}); subject models from OSB (and similar models publicly available) to tests; develop and maintain the \textit{SciDash} website (\textbf{Community}); coordinate with OSB developers to implement automated \textit{SciUnit} testing.
 
-\textbf{Sharon M Crook, PhD} (2 hrs/week) has expertise in mathematics, computational modeling, and neuroinformatics.  She will help interface \textit{NeuroUnit} to NeuroML and Open Source Brain. Access to the broader neuroscience community requires the use of an accepted model description standard.  We chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is funded by NIH to maintain and support NeuroML and will help us use NeuroML for model specification (\textbf{Conformance}).  She will also assist with graduate training as needed.  
+\textbf{Sharon M Crook, PhD} (2 hrs/week) has expertise in mathematics, computational modeling, and neuroinformatics.  She will help interface \textit{NeuroUnit} to NeuroML and OSB. \textbf{Community} access requires the use of an accepted model description standard.  We chose NeuroML due to its advanced state and broad coverage of multiple scales.  Dr. Crook is NIH-funded to maintain NeuroML and can help extend NeuroML if needed for model specification (\textbf{Conformance}).  She will also assist with graduate training as needed.  
 
-\textbf{Jonathan Aldrich, PhD} (2 hrs/week) has expertise in software engineering, software verification and validation, and human factors in software design. He will guide overall software architecture and supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure \textbf{quality}.  While Mr. Omar will be writing code, Dr. Aldrich will be providing guidance on the overall structure of the implementation.  Dr. Aldrich is already Mr. Omar's graduate supervisor (funded by other sources), but for this project Dr. Aldrich will take on the additional training responsibilities specific to the focus of this proposal.  
+\textbf{Jonathan Aldrich, PhD} (2 hrs/week) has expertise in software engineering, software verification and validation, and human factors in software design. He will guide overall software architecture and supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure \textbf{quality}.  Dr. Aldrich will provide guidance on the overall structure of implementation.  Dr. Aldrich is Mr. Omar's graduate supervisor.\todo{What about other students?}  
 
 \subsection{Key Personnel and Collaborators}
-\textbf{Cyrus Omar} (25 hrs/week) is senior graduate student with expertise in computational modeling in neuroscience, computer science, and software infrastructure for science.  He will guide core framework design and development and overall software architecture (\textbf{Quality}) and develop and maintain the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about practicalities of model testing, which will inform revisions to the code.  
+\textbf{Cyrus Omar} (25 hrs/week) is a senior graduate student with expertise in computational modeling in neuroscience, computer science, and software infrastructure for science.  He will guide core framework design, development, and software architecture (\textbf{Quality}) and maintain the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about testing practicalities, informing code revisions.  
 
 \textbf{R. Angus Silver, PhD} is a full professor with expertise in neurophysiology, computational neuroscience and neuroinformatics.  
-A frequent collaborator of Crook, Silver maintains Open Source Brain (OSB), the largest standards-driven respository for models in neuroscience, for which he is funded by The Wellcome Trust.  
-The OSB team has welcomed us to integrate \textit{SciUnit} into OSB for automated model testing (\textbf{Integration}).  
-This exposes a wide range of neuroscience models specified in NeuroML (\textbf{Applicability}), and in turn exposes the project to the international neuroscience modeling community, serving as proof of concept for expansion into other areas of biology.  
+A frequent collaborator of Crook, Silver maintains OSB, funded by The Wellcome Trust.  
+He has welcomed us to integrate \textit{SciUnit} into OSB for automated model testing (\textbf{Integration}).  
+This exposes a wide range of neuroscience models to testing (\textbf{Applicability}), and exposes the project to the international neuroscience community, serving as proof of concept for expansion into other areas of biology.  
 
-\textbf{Shreejoy Tripathy, PhD} is a recent doctoral awardee with expertise in neuroinformatics, computational neuroscience, and data mining.  A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project, the largest data repository concerning electrophysiological properties of neurons.  He will help further integrate \textit{NeuroUnit} with NeuroElectro through API development, providing a wide range of data for testing neuroscience models.  
+\textbf{Shreejoy Tripathy, PhD} is a recent doctoral awardee with expertise in neuroinformatics, computational neuroscience, and data mining.  A frequent collaborator of Gerkin, Tripathy maintains The NeuroElectro Project.  He will help further integrate \textit{NeuroUnit} with NeuroElectro through API development, providing a wide range of data for testing neuroscience models.  
 
 % Other potential collaborators (not necessarily all listed):
 % Michael Hines (NEURON)
@@ -496,7 +502,7 @@ This exposes a wide range of neuroscience models specified in NeuroML (\textbf{A
 % Others?  
 
 \subsection{Means of Coordination}
-Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings there.  Because the existing projects that form the basis for each collaboration are a) well-documented, and b) available under an open license, there should be no barriers to code sharing and collaborative development.  The popular and powerful Github platform will be used for code development and communication between developers.
+Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for "Math Biology" group meetings.  Because the existing projects underlying each collaboration are a) well-documented, and b) available under an open license, there are no barriers to code sharing and collaborative development.  Github will be used for code development and communication between developers.
 
 % Section 7.
 \section{Current and Previous NSF Funding}
