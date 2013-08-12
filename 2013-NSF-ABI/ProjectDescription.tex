@@ -40,9 +40,8 @@ right  = 1in]{geometry}
 %scattered throughout the document. This gives the reader the feeling
 %that its features aren't fully thought out. 
 
-% The lines below are turning underscores into apostophes!  
-%\usepackage{alltt}
-%\renewcommand{\ttdefault}{txtt}
+\usepackage[scaled]{beramono}
+\usepackage[T1]{fontenc}
 \begin{document}
 
 % Section 1.
@@ -162,7 +161,7 @@ class TrainSpikeCountFromCurrent(sciunit.Capability)
     observed spike counts. Called once."""
     raise NotImplementedError("Model does not implement capability.")
 \end{python}
-\vspace{-15px}
+%\vspace{-15px}
 \caption{Another capability specifying a training protocol (not used by the test in Figure \ref{fig:rate_test}).}
 \label{fig:training}
 \end{figure}
