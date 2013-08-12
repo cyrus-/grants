@@ -71,7 +71,6 @@ A number of other tests would also be included to complete the suite. For exampl
 Importantly, the validation criteria being used are made explicit by the specification of a test suite, so modelers need not guess which criteria are being used to validate or invalidate their model. Validation criteria are subject to debate (indeed, the QSNMC criteria changed between 2007 and 2008 due to such debates), and scientists who wish to promote different criteria need only to derive alternative test suites. In many cases, the same models can be automatically run against the new tests without modification because the same type of data is being requested.\todo{mention that this is a favorite past-time of statisticians, i.e. that one dead fish fMRI paper?}
 \subsection{Validation Testing with \emph{SciUnit}} 
 \begin{figure}
-\label{fig:rate_test}
 \begin{python}
 class SpikeCountTest(sciunit.Test):
   """Tests a model that generates spike counts from currents.
@@ -102,6 +101,7 @@ class SpikeCountTest(sciunit.Test):
 \end{python}
 %\vspace{-16px}
 \caption{A single neuron spike count test family implemented in \textit{SciUnit}}
+\label{fig:rate_test}
 \end{figure}
 The first product of this proposal is a simple validation testing framework to support building test suites like the one described above. This framework, called \emph{SciUnit}, is written in Python and uses Python's object-oriented facilities to make test construction (from data) and execution simple \cite{python-oo}.
 
@@ -110,7 +110,7 @@ Listing \todo{make code figures into listings?} \ref{fig:rate_test} shows how a 
   CA1_sc_test = SpikeCountTest(CA1_inputs, CA1_means, CA1_stds)
 \end{python}
 
-We emphasize the crucial distinction between the class \verb|SpikeCountTest|, which can be thought of as representing a \emph{parameterized family} of validation tests, and the particular instance \verb|CA1_sc_test|, which is an individual validation test. Parameterized test families package common testing logic that can be reused by experimentalists to instantiate tests based on their own data without having to rewrite the testing logic in full. As we will describe further below, we expect communities to build repositories of such family so that test generation in most cases will simply involve instantiating an existing family with experimental parameters and data. For single-neuron tests, we refer to this repository as \verb|neuronunit| (see Section \ref{neuronunit}). 
+We emphasize the crucial distinction between the class \verb|SpikeCountTest|, which can be thought of as representing a \emph{parameterized family} of validation tests, and the particular instance \verb|CA1_sc_test|, which is an individual validation test. Parameterized test families package common testing logic that can be reused by experimentalists to instantiate tests based on their own data without having to rewrite the testing logic in full. As we will describe further below, we expect communities to build repositories of such families so that test generation in most cases will simply involve instantiating an existing family with experimental parameters and data. For single-neuron tests, we refer to this repository as \verb|neuronunit| (see Section \ref{neuronunit}). 
 
 % Testing in SciUnit proceeds in three phases (Figure 1):\todo{this spacing seems unnecessarily small}
 %\begin{enumerate}
@@ -121,7 +121,6 @@ We emphasize the crucial distinction between the class \verb|SpikeCountTest|, wh
 %\todo{Fix figure reference}
 %
 \begin{figure}
-\label{fig:capability}
 \begin{python}
 class SpikeCountFromCurrent(sciunit.Capability):
   def spike_count_from_current(self, input): 
@@ -131,9 +130,9 @@ class SpikeCountFromCurrent(sciunit.Capability):
 \end{python}
 %\vspace{-15px}
 \caption{An example capability specifying a single required method.}
+\label{fig:capability}
 \end{figure}
 \begin{figure}
-\label{fig:training}
 \begin{python}
 class TrainSpikeCountFromCurrent(sciunit.Capability)
   def train_with_currents(self, currents, counts):
@@ -142,6 +141,7 @@ class TrainSpikeCountFromCurrent(sciunit.Capability)
     raise NotImplementedError("Model does not implement capability.")
 \end{python}
 \caption{Another capability specifying a training protocol (not used by the test in Figure \ref{fig:rate_test}).}
+\label{fig:training}
 \end{figure}
  Classes that implement the \verb|sciunit.Test| interface must contain a \verb|run_test| method that receives a candidate model as input and produces a score as output (in contrast to conventional unit tests, which always produce a boolean result). Models are instances of \verb|sciunit.Model| and scores are instances of \verb|sciunit.Score|. To specify the interface between the test and the models within its scope, the test author provides a list of \emph{capabilities} in the \verb|required_capabilities| attribute, seen on line 5 of Listing \ref{fig:rate_test}. Capabilities are analagous to \emph{interfaces} in languages like Java. In Python, they correspond to classes with unimplemented members. In SciUnit, we require that such classes be tagged as capabilities by inheriting from \verb|sciunit.Capability| to allow them to be discovered by our infrastructure (discussed below). The example capability used in Listing \ref{fig:rate_test} is shown in Listing \ref{fig:capability}. A simple \emph{model family} implementing this capability is seen in Figure \ref{fig:simple_model} which simply produces a spike count by applying a linear transformation to the mean of the input current. The model family is parameterized by the scale factor and offset. To create a particular model, a modeler must choose particular parameters and instantiate the class, just as with tests:
 \begin{python}
@@ -153,7 +153,6 @@ CA1_linear_model_fit = LinearModel()
 CA1_linear_model_fit.train_with_currents(CA1_training_in, CA1_training_out)
 \end{python}
 \begin{figure}
-\label{fig:simple_model}
 \begin{python}
 class LinearModel(sciunit.Model, SpikeCountFromCurrent, 
     TrainSpikeCountFromCurrent):
@@ -168,6 +167,7 @@ class LinearModel(sciunit.Model, SpikeCountFromCurrent,
     [self.scale, self.offset] = numpy.polyfit(means, counts, deg=1)    
 \end{python}
 \caption{A simple model that returns a spike count by scaling the mean of the input by a fixed parameter.}
+\label{fig:simple_model}
 \end{figure}
 In the test in Listing \ref{fig:rate_test}, the \verb|run_test| method simply calls the capability method to produce spike count predictions for each input current on line 18. The resulting spike count is compared to the empirical mean and standard deviation on ...\todo{need to figure this out} to produce a mean p-value. In addition to the score itself, the returned score object also contains metadata that may be useful to scientists wishing to examine the result in detail. In this example, we save the inputs, observed means and variances and the model output alongside the score by using the \verb|related_data| parameter. We will return to how test results are visualized in Section \ref{scidash}.
 
@@ -197,8 +197,8 @@ When a test suite is executed against a model, it produces summary data that can
 \vspace{-0px}
 \includegraphics[scale=0.65]{sciunit_overview.pdf}
 \caption{Proposal overview. \scriptsize{i) The \textit{SciUnit} framework can generate discipline-specific libraries of tests and model interfaces.  \textit{NeuroUnit} is proposed and described here.  Experimental data guides test development; model generation informs and is informed by the collections in a \textit{SciUnit} library.  Each \text{SciUnit} library on GitHub is indexed by the \textit{SciDash} web application.  \textit{SciDash} automatically runs the test collections in each library and publicly displays the results.}}
-\vspace{-10px}
 \label{fig:sciunit_overview}
+\vspace{-10px}
 \end{wrapfigure}
 \leavevmode
 Unit tests are produced by the community of developers involved in the development of a program. Correspondingly, members of a scientific community can collaboratively produce suites of validation tests in common source code repositories. Each test specifies the model requirements, and provides a procedure for determining whether a candidate model (the input to the test) is consistent with a particular summary of experimental observations (the parameters of the test). Model performance on a collaboratively curated suite of validation tests can serve as justification of claims regarding the model's validity as a description of the scientific system characterized by the test suite.
@@ -230,7 +230,6 @@ We have developed most of the core testing framework, \textit{SciUnit}, under a 
 \subsection{\textit{SciUnit} Implementation} We implemented \textit{SciUnit} using the Python programming language \cite{python} due to its widespread adoption across the quantitative sciences. Python also supports interoperability with other major languages used within science, including C, R \cite{r_url}, and MATLAB \cite{matlab_url}. The functionality described below could also be readily translated into any programming language with comparable facilities.
 
 \begin{figure}
-\label{fig:ca1_model}
 \begin{python}
 class CA1PyramidalCellModel(NeuroConstructModel,
 				            capabilities.ReceivesCurrent):
@@ -248,6 +247,7 @@ class CA1PyramidalCellModel(NeuroConstructModel,
 \end{python}
 %\vspace{-15px}
 \caption{A candidate class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
+\label{fig:ca1_model}
 \end{figure}
 
 In Figure \ref{fig:ca1_model}, the model produces a firing rate after being provided a current.  The capabilities a model must implement are determined by its base classes; it multiply inherits some \verbx{sciunit.Candidate} subclass (here NeuroConstruct.Model, described in \ref{sec:neuroml_candidates}), and some number of \verbx{sciunit.Capability} subclasses.  The model then expresses methods (such as \verbx{set_current}) that override (and implement) the abstract, unimplemented methods provided in the corresponding \verbx{sciunit.Capability} subclasses.  Any capability the model inherits must have all if its associated methods implemented.  Failure to do so will result in a \verbx{NotImplementedError}, indicating a model scope less than claimed by its inheritance.  
