@@ -47,34 +47,6 @@ right  = 1in]{geometry}
 %\usepackage[T1]{fontenc}
 %\titleformat{\subsection}[runin]{}{}{}{}[]
 
-% Josh says: A lot of the *potential* and actual features of SciDash are
-%scattered throughout the document. This gives the reader the feeling
-%that its features aren't fully thought out. 
-
-% Sharon says: The only more substantial comment has to do with the workflow. You write about the model description and then say will simulate via neuroconstruct, then apply tests comparing simulated data with experimental data. All that is clear.  What is not quite so clear to me is the specification of the simulation details since they must match the experimental methods. In other words, if I were reviewing I would say that one weakness is the lack of details about how the details of the simulations are determined or perhaps where this information is stored. How is this automated? If you are running a suite of tests on a model, does triggering the suite trigger a certain simulation protocol to get the needed computational outpub? This part is not clear to me.
-
-% Jonathan says: Regarding model families--I think we should use "model" for the class and "model instance" for the instance.  In other words, to me the English word "model" is a class-like thing that is parameterized and can be instantiated.  For example, we speak of a "linear model" of a neuron - in fact you even call the class a LinearModel, not a LinearModelFamily.
-
-% Jonathan says: All I meant was give me an overview of the plan (and more generally an outline for section 4) before going into the weeds.  It's somewhat uncomfortable to read section 4.1 with no idea whatsoever of what will be coming in 4.2.  Maybe that's the CS dude in me who wants every bit in its place, but I think foreshadowing things is helpful.
-
-% Jonathan says: It might make sense to say a bit more in the coordination section.  In particular, we have funds to travel (e.g. for Cyrus to visit ASU) and mentioning an approach to meetings that we plan to take might be a good idea also.
-
-% Josh says: In particular I'd like to
-%see more discussion of the overview SciDash will give of the test
-%results. Are all tests equal? What aggregation functions will you
-%provide?How will a new user (or journalist as you suggest in one of
-%the concluding sections) be able to reasonably quickly understand "how
-%well" a model predicts the data?
-
-% Jonathan said: I think this is a good thing for us to do.  We could%
-%* Sponsor workshops on evaluating scientific models in general, raising awareness of the need and building a community that might use our tools.
-%* Give tutorials on our tools at scientific conferences
-%* Organize competitions similar to those already mentioned in the proposal."
-
-% Maybe we can co-opt and exiting computational neuroscience workshop and get a few hours/days of time there to teach SciUnit?  
-% What about something like Woods Hole?  
-% I think INCF might have money for these sorts of things.  
-
 \begin{document}
 % Section 1.
 \section{Introduction}
@@ -248,8 +220,7 @@ Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an 
 \begin{tabular}{| c | p{13.5cm} |}
 \hline
 Data & The measurements yielded by an experiment.\\ \hline  
-Model & An set of relations that aims to explain, reproduce, or predict data.  Realized in a model instance.\\ \hline
-Model Family & A class generating a set of related model instances. Each instance from one family differs in the set of parameters (corresponding to experimental design or training data) with which it was initialized.\\ \hline  
+Model & A set of relations that aims to explain, reproduce, or predict data.  Realized by a class that generates a set of related, parameterized model instances. Each instance of one model differs only in the set of parameters (corresponding to experimental design or training data) with which it was initialized.\\ \hline  
 Validation	 & The process of assessing the agreement between model output and experimental data.\\ \hline
 (Validation) Test & A set of criteria to evaluate a model's output against a summary of experimental data. Realized in a test instance.  One experiment can inform the development of many tests.\\ \hline  
 Test Family & A class generating a set of related test instances.  Each instance from one family differs only quantitatively, according to its initialization data.  All tests from one family try to validate the same model property.\\ \hline
@@ -417,7 +388,7 @@ Some models do not attempt to reproduce experiments, but serve as proof that som
 A test first assesses goodness-of-fit, and applies a normalization (e.g. pass/fail, 0.0-1.0) to generate a score.  Arbitrary choices at both stages may benefit some models over others.  \textbf{First}, however, rank-ordering is constant across many goodness-of-fit metrics, meaning that choice of metric will rarely cause an otherwise passing model to fail and vice versa.  For example, given a data mean and variance, ordering model output by Z-score or p-value will yield the same relative ranking of models. Indeed, rank ordering of models may prove more valuable than test scores themselves. \textbf{Second}, suite repositories are open (e.g. Fig. \ref{fig:scidash_repo}), so tests can be cloned and new statistical choices implemented. Statistics as applied to neuroscience have been notoriously ``fast and loose''; identification and correction of flawed methodology is becoming increasingly common\cite{button_power_2013,kriegeskorte_circular_2009,galbraith_study_2010,fish_fmri_url}, and is accelerated by an open framework. The community can judge which test version is most appropriate, i.e. what a model \textit{should} do -- this process documented via standard moderation techiniques used on GitHub -- and the \textit{SciUnit} framework determines whether the model \textit{does} it.  
 
 \subsubsection{Reliability of Data Underlying Tests}
-Unreliable data can undermine model validation. \textbf{First}, the community must evaluate experimental design and methods, discounting data produced using questionable techniques.  GitHub supports community moderation, permitting users to comment on tests, indicating their concerns.  Suite repository popularity, by which \textit{SciDash} results can be filtered, can reflect consensus.  Experimental metadata also constrains a test's relevance, so test writers should select data with metadata appropriate to the system being modeled, and attach the metadata to resulting test scores.  \textbf{Second}, models cannot perfectly reproduce data that is itself a random draw from a ``true'' distribution.  Uncertainty in data must be made explicit, by asking how well a data set validates its own experimental replications\cite{kriegeskorte_representational_2008}.  The degree of such ``self-validation'' represents the upper limit of what a model can be expected to achieve, and should represent a ``perfect'' score.  
+Unreliable data can undermine model validation. \textbf{First}, the community must evaluate experimental design and methods, discounting data produced using questionable techniques.  GitHub supports community moderation, permitting users to comment on tests, indicating their concerns.  Suite repository popularity, by which \textit{SciDash} results can be filtered, can reflect consensus.  Experimental metadata also constrains a test's relevance, so test writers should select data with metadata appropriate to the system being modeled, and attach the metadata to resulting test scores.  Metadata can also be expressed as Capabilities, e.g. \verbx{At37Degrees} or \verbx{Calcium3mM}; and tests can require that models express them.  Such capabilities require no implementation, so the model definition must only inherit them. \textbf{Second}, models cannot perfectly reproduce data that is itself a random draw from a ``true'' distribution.  Uncertainty in data must be made explicit, by asking how well a data set validates its own experimental replications\cite{kriegeskorte_representational_2008}.  The degree of such ``self-validation'' represents the upper limit of what a model can be expected to achieve, and should represent a ``perfect'' score.  
 
 \subsubsection{Computational Efficiency}
 Large models execute slowly, and repeated testing may be computationally intensive.  We prioritize minimal re-execution of a model in \textit{SciUnit}'s design.  Test suites requiring the same model output many times require the model to be executed once, because model output is cached during test suite execution.  This caching is implemented either as records of test workflow, e.g. Sage or IPython worksheets, or through optional database backends in the \verbx{sciunit.utils} module.  
@@ -467,7 +438,7 @@ The sponsor ultimately selects from among the applicants, and we will actively s
 
 \textit{SciUnit} can make a significant impact on the field by enabling modelers and experimentalists to collaborate in building better models and in validating those models more rigorously.  Modelers benefit by having a large set of readily-available experiments with which to refine and test their models.  Experimentalists benefit because their data will be more accessible to modelers, giving it more impact on the theoretical development of the field.
 
-To that end, we plan a set of community-building activities that will educate modelers and experimentalists about the benefits of \textit{SciUnit}, and teach them to use the related tools.  We plan to organize a workshop, to be held at a popular computational neuroscience conference (e.g. CNS or Cosyne) focused on evaluation of scientific models; this workshop will help to raise awareness of the need for tools like \textit{SciUnit}, and bring together a community well-suited to use it.  We also plan to offer a tutorial on \textit{SciUnit} at a summer Neuroinformatics course, the ideal choice being the one that RCG attended during his graduate training held at Marine Biological Labaratory.  Finally, we will leverage \textit{SciUnit} to organize a modeling competition, a sequel to the QSNMC\cite{jolivet_quantitative_2008}, identifying modeling progress in a field of neuroscience.
+To that end, we plan a set of community-building activities that will educate modelers and experimentalists about the benefits of \textit{SciUnit}, and teach them to use the related tools.  We plan to organize a workshop, to be held at a popular computational neuroscience conference (e.g. CNS or Cosyne) focused on evaluation of scientific models; this workshop will help to raise awareness of the need for tools like \textit{SciUnit}, and bring together a community well-suited to use it.  The International Neuroinformatics Coordinating Facility (INCF, for which RCG serves on a data standards working group) also offers grants for ``collaborations and knowledge transfer between and within INCF member countries", which could help fund workshops.  We also plan to offer a tutorial on \textit{SciUnit} at a summer Neuroinformatics course, the ideal choice being the one that RCG attended during his graduate training held at Marine Biological Labaratory.  Finally, we will leverage \textit{SciUnit} to organize a modeling competition, a sequel to the QSNMC\cite{jolivet_quantitative_2008}, identifying modeling progress in neurophysiology.
 
 \subsection{External Outreach}
 \textit{SciUnit} can facilitate better understanding of science in the media and in the public at large.
@@ -548,7 +519,7 @@ A scientific software framework succeeds by being used, which depends upon:
 \textbf{Community} access (i.e. an accessible internet presence). 
 We have the appropriate team members to meet these criteria. 
 
-\subsection{PIs}
+\subsection{[PIs]}
 
 \textbf{Richard C Gerkin, PhD} (25 hrs/week) has expertise in experimental and computational neurophysiology, neuroinformatics, and web development.  He will coordinate all project activities and be responsible for all output. He will also: coordinate with the NeuroElectro project and solicit other sources to obtain physiology data, and construct tests from data (experience as both an experimentalist and a modeler, across many scales, will facilitate this objective (\textbf{Relevance})); write NeuroML-related bindings (e.g. \verbx{NeuroConstructModel}) (\textbf{Conformance}); subject models from OSB (and similar models publicly available) to tests; develop and maintain the \textit{SciDash} website (\textbf{Community}); coordinate with OSB developers to implement automated \textit{SciUnit} testing (\textbf{Integration}).
 
@@ -556,7 +527,7 @@ We have the appropriate team members to meet these criteria.
 
 \textbf{Jonathan Aldrich, PhD} (2 hrs/week) has expertise in software engineering, software verification and validation, and human factors in software design. He will guide overall software architecture and supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure \textbf{quality}.  Dr. Aldrich will provide guidance on the overall structure of implementation.  Dr. Aldrich is Mr. Omar's graduate supervisor.
 
-\subsection{Key Personnel and Collaborators}
+\subsection{[Key Personnel and Collaborators]}
 \textbf{Cyrus Omar} (25 hrs/week) is a senior graduate student with expertise in computational modeling in neuroscience, computer science, and software infrastructure for science.  He will guide core framework design, development, and software architecture (\textbf{Quality}) and maintain the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about testing practicalities, informing code revisions.  
 
 \textbf{R. Angus Silver, PhD} is a full professor with expertise in neurophysiology, computational neuroscience and neuroinformatics.  
@@ -574,7 +545,7 @@ This exposes a wide range of neuroscience models to testing (\textbf{Applicabili
 % Others?  
 
 \subsection{Means of Coordination}
-Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for ``Math Biology'' group meetings.  Because the existing projects underlying each collaboration are a) well-documented, and b) available under an open license, there are no barriers to code sharing and collaborative development.  Github will be used for code development and communication between developers.
+Dr. Gerkin trained in Pittsburgh and maintains ongoing collaborations with Dr. Aldrich, Mr. Omar, and Dr. Tripathy.  Dr. Gerkin works at ASU and regularly meets with Dr. Crook for ``Math Biology'' group meetings.  Local, topical meetings, e.g. Statistical Analysis of Neural Data (SAND, in Pittsburgh yearly) represent another chance for the team to assemble and brainstorm in person.  Because the existing projects underlying each collaboration are a) well-documented, and b) available under an open license, there are no barriers to code sharing and collaborative development.  Github will be used for code development and communication between developers.
 
 % Section 7.
 \section{Current and Previous NSF Funding}
