@@ -110,9 +110,10 @@ class SpikeCountTest(sciunit.Test):
     counts = numpy.empty((n,))
     for i in xrange(n):
       counts[i] = model.spike_count_from_current(inputs[i])
-      
-    # TODO how does the QSNMC measure goodness-of-fit?
-    return sciunit.AveragePValue(result, related_data={
+    chisquared = sum((counts-means)**2 / means) # An array of chi-squared values.  
+    p = scipy.stats.chi2.cdf(chisquared,n-1) # An array of p-values.  
+    pooled_p = sciunit.utils.fisherp(p_array) # A pooled p-value.  
+    return sciunit.PValue(pooled_p, related_data={
       "inputs": input_current,
       "obs_means": means,
       "obs_stds": stds
@@ -137,7 +138,7 @@ The first product of this proposal is a simple validation testing framework to s
 
 %It also requires the Numpy numerics library common to most Python scientific computing projects\cite{numpy_url}. [[no it doesn't --cyrus]]
 
-Fig. \ref{fig:rate_test} shows how a scientist would implement the spike count test described in the preceding section using \textit{SciUnit}. A \textit{SciUnit} validation test is an {instance} of a Python class implementing the \verbx{sciunit.Test} interface. Here, we show a class \verbx{SpikeCountTest} taking three \emph{parameters} in its constructor (in Python, the constructor is always named \verbx{__init__}; the parameters' meaning is documented on lines 5-8). To create a \emph{particular} spike count test, we instantiate this class with particular experimental observations. For example, given observations from hippocampal CA1 cells (not shown), we can instantiate a test as follows:
+Fig. \ref{fig:rate_test} shows how a scientist would implement the spike count test described in the preceding section using \textit{SciUnit}. A \textit{SciUnit} validation test is an {instance} of a Python class implementing the \verbx{sciunit.Test} interface. Here, we show a class \verbx{SpikeCountTest} taking three \emph{parameters} in its constructor (in Python, the constructor is always named \verbx{__init__}; the parameters' meaning is documented on lines 5-8). For convenience, we also make use of functions provided by the popular NumPy\cite{numpy_url} and SciPy\cite{scipy_url} libraries, although these are not required by \textit{SciUnit}.  To create a \emph{particular} spike count test, we instantiate this class with particular experimental observations. For example, given observations from hippocampal CA1 cells (not shown), we can instantiate a test as follows:
 \begin{python}
   CA1_sc_test = SpikeCountTest(CA1_inputs, CA1_means, CA1_stds)
 \end{python}
@@ -151,6 +152,9 @@ We emphasize the crucial distinction between the \textit{class} \verbx{SpikeCoun
 %\end{enumerate}
 %\todo{Fix figure reference}
 %
+
+Classes that implement the \verbx{sciunit.Test} interface must contain a \verbx{run_test} method that receives a candidate \emph{model} as input and produces a \textit{score} as output. To specify the interface between the test and the model (that is, to constrain the test's scope), the test author provides a list of \emph{capabilities} in the \verbx{required_capabilities} attribute, seen on line 13 of Fig. \ref{fig:rate_test}. Capabilities are simply collections of methods that a test may need to invoke to receive relevant data, and are analogous to \emph{interfaces} in e.g. Java \cite{java_interfaces_url}. In Python, they are written as classes with unimplemented members. The capability required by the test in Fig. \ref{fig:rate_test} (used on line 20) is shown in Fig. \ref{fig:capability}. In \textit{SciUnit}, we require that classes defining capabilities be tagged by inheriting from \verbx{sciunit.Capability}, for discovery by our infrastructure (Figs. \ref{fig:capability},\ref{fig:training}). 
+
 \begin{figure}
 \begin{python}
 class SpikeCountFromCurrent(sciunit.Capability):
@@ -180,13 +184,11 @@ class TrainSpikeCountFromCurrent(sciunit.Capability)
 \vspace{-15px}
 \end{figure}
 
-Classes that implement the \verbx{sciunit.Test} interface must contain a \verbx{run_test} method that receives a candidate \emph{model} as input and produces a \textit{score} as output. To specify the interface between the test and the model (that is, to constrain the test's scope), the test author provides a list of \emph{capabilities} in the \verbx{required_capabilities} attribute, seen on line 13 of Fig. \ref{fig:rate_test}. Capabilities are simply collections of methods that a test may need to invoke to receive relevant data, and are analogous to \emph{interfaces} in e.g. Java \cite{java_interfaces_url}. In Python, they are written as classes with unimplemented members. The capability required by the test in Fig. \ref{fig:rate_test} (used on line 20) is shown in Fig. \ref{fig:capability}. In \textit{SciUnit}, we require that classes defining capabilities be tagged by inheriting from \verbx{sciunit.Capability}, for discovery by our infrastructure (see below). 
-
 Capabilities are \emph{implemented} by models. A simple \emph{family} of models implementing this capability is shown in Fig. \ref{fig:simple_model}. Models in this family produce a spike count by applying a linear transformation to the mean of the provided input current. The family is parameterized by a scale factor and offset, both scalars. To create a \emph{particular} model, the modeler may choose particular parameter values, just as with test families:
 \begin{python}
 CA1_linear_model_heuristic = LinearModel(3.0, 1.0)
 \end{python}
-Here, the parameters to the model were picked by the modeler heuristically, or based on externally-available knowledge. An alternative test design to the one in Figure \ref{fig:rate_test} would add a second required capability (Fig. \ref{fig:training}) and a corresponding training phase to the \verb|run_test| method. This test would thus be relevant only for those models for which the parameters can be adjusted without human involvement. Whether to build the training phase into the test protocol is a choice left to each community. Note that although Fig. \ref{fig:rate_test} does not include a training phase, if training data is available, models that nevertheless implement a training capability (like \verb|LinearModel|) can simply be trained explicitly by calling the capability method just like any other Python method (data not shown):
+Here, the parameters to the model were picked by the modeler heuristically, or based on externally-available knowledge. An alternative test design to the one in Fig. \ref{fig:rate_test} would add a second required capability (Fig. \ref{fig:training}) and a corresponding training phase to the \verb|run_test| method. This design would be relevant only for those models for which parameters can be adjusted without human involvement. Whether to build a training phase into the test protocol is a choice left to each modeler. Although Fig. \ref{fig:rate_test} does not include a training phase, if training data is available then models that nevertheless implement a training capability (like \verb|LinearModel|) can simply be trained explicitly by calling the capability method just like any other Python method:
 \begin{python}
 CA1_linear_model_fit = LinearModel()
 CA1_linear_model_fit.train_with_currents(CA1_training_in, CA1_training_out)
@@ -207,9 +209,10 @@ class LinearModel(sciunit.Model, SpikeCountFromCurrent,
 \end{python}
 \caption{A simple model that returns a spike count by scaling the mean of the input by a fixed parameter.}
 \label{fig:simple_model}
+\vspace{-15px}
 \end{figure}
 
-In the test in Fig. \ref{fig:rate_test}, the \verbx{run_test} method simply calls the \verbx{spike_count_from_current} capability method  to produce spike count predictions for each input current on line 18. The resulting spike count is compared to the empirical mean and standard deviation on ...\todo{need to figure this out} to produce a mean p-value. In addition to the score itself, the returned score object also contains metadata of use to those wishing to examine the result in detail. In this test we saved the inputs and observed means and standard deviations alongside the score by using the \verbx{related_data} parameter. We discuss visualization of results in Sec. \ref{sec:scidash_activities}.
+In the test in Fig. \ref{fig:rate_test}, the \verbx{run_test} method simply calls the \verbx{spike_count_from_current} capability method  to produce spike count predictions for each input current on line 18. There are many possibly statistical choices for deriving a test score.  In the figure, the resulting spike count is compared to the empirical mean to produce a chi-squared statistic, and ultimately a p-value. Alternatively, the array of standard deviations (line 10) could be used to derive a Z-score.  In addition to the score itself, the returned score object also contains metadata of use to those wishing to examine the result in detail. In this test we saved the inputs and observed means and standard deviations alongside the score by using the \verbx{related_data} parameter. We discuss visualization of results in Sec. \ref{sec:scidash_activities}.
 
 Finally, a test is executed against a model instance, using the \verbx{sciunit.run} function:
 \begin{python}
@@ -219,33 +222,34 @@ score = sciunit.run(CA1_sc_test, CA1_linear_model_heuristic)
 The \verbx{sciunit.run} function operates in three phases: \textbf{(1) Capability Checking}: The model is verified as capable of taking the test by checking each capability in the test's \verbx{required_capabilities} attribute; \textbf{(2) Test Execution}: The test's \verbx{run_test} method is called to execute the model and cache its output. \textbf{(3) Output Validation}: \verbx{run_test} returns an instance of a \verbx{sciunit.Score} subclass containing a goodness-of-fit metric between the model output and the data used to instantiate the test.  Any errors that occur during this process are reported by raising an appropriate exception.
 
 \subsection{\textit{SciUnit} Test Suites}
-A test suite is a collection of tests designed to validate a model against several mutually coherent requirements, i.e. various summaries of the data.  The following is a test suite that could be used for the QSNMC.  
+A test suite is a collection of tests designed to validate a model against several mutually coherent requirements, i.e. various summaries of the data.  The following is a test suite that could be used for the QSNMC:  
 \begin{python}
 CA1_suite = sciunit.TestSuite([CA1_sc_test, CA1_sl_test, CA1_sv_test, CA1_isi_test, CA1_ism_test])
 \end{python}
-When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the Sec. \ref{sec:scidash}.
+When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in Sec. \ref{sec:scidash}.
 
 \subsection{\textit{SciUnit}: A Simple Validation Testing Framework}
-Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML\cite{neuroml_url,gleeson_neuroml:_2010}) are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} 
+Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML\cite{neuroml_url,gleeson_neuroml:_2010}) are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} All figures shown here containing code blocks make use of this framework.  
 
 \begin{table}[h]\footnotesize
 \caption{Glossary of Terms}
 \label{table:glossary}
-\begin{tabular}{| c | p{13cm} |}
+\begin{tabular}{| c | p{13.5cm} |}
 \hline
 Data & The measurements yielded by an experiment.\\ \hline  
-Model & An executable function that aims to explain, reproduce, or predict experimental data.  More generally, a candidate.\\ \hline
-Model Family & A class that generates a set of related model instances. Each model instance from one family differs according to the set of parameters (corresponding to a particular experimental design, or set of training data) with which it was initialized.\\ \hline  
+Model & An set of relations that aims to explain, reproduce, or predict data.  Realized in a model instance.\\ \hline
+Model Family & A class generating a set of related model instances. Each instance from one family differs in the set of parameters (corresponding to experimental design or training data) with which it was initialized.\\ \hline  
 Validation	 & The process of assessing the agreement between model output and experimental data.\\ \hline
-(Validation) Test & A function that executes a model and scores the model’s output against a summary of experimental data. One experiment can inform the development of many tests.\\ \hline  
-Test Family & A class that generates a set of related test instances.  Test instances from within one family differ only quantitatively, according to the data used to initialize them.  All tests from one family attempt to validate the same property of a model.\\ \hline
+(Validation) Test & A set of criteria to evaluate a model's output against a summary of experimental data. Realized in a test instance.  One experiment can inform the development of many tests.\\ \hline  
+Test Family & A class generating a set of related test instances.  Each instance from one family differs only quantitatively, according to its initialization data.  All tests from one family try to validate the same model property.\\ \hline
 Test Suite & A collection of tests, each of which attempts to validate a different property of a model.\\ \hline  
 Score & A value summarizing the performance of a model on a test. This can be a measure of the goodness of fit between model output and experimental data.\\ \hline
 Scope & A list of tests that a model is eligible to take, indicating the range of experimental data that the model might be able to explain or replicate.\\ \hline
-Capability & 	A contract that states that a model is able to produce results of a particular form. For example, a Hodgkin-Huxley neuron model is capable of producing a membrane potential time-series, whereas a model without a notion of voltage is not.\\ \hline
+Capability & A contract stating that a model accepts input or produces output of a particular form. A Hodgkin-Huxley model is capable of producing a membrane potential, whereas a model without a notion of voltage is not.\\ \hline
 Record & An indication of the test score achieved by a model, along with any initialization conditions.\\ \hline
 Record Suite & A list of records associated with a model.  This summarizes the scope and validity of the model.\\ \hline  
 \end{tabular}
+\vspace{-12px}
 \end{table}
 
 \subsection{Community Workflow}
@@ -254,17 +258,17 @@ This workflow continuously produces a summary of the field, indicating which mod
 
 \subsection{\textit{SciDash}: A Community web application}\label{sec:scidash}
 This framework is most effective when the current state of a research area is represented by a collection of tests and models. This requires coordination among research groups, so community-oriented cyberinfrastructure to support test suite creation and summarization, building upon \textit{SciUnit}, is essential.
-We propose a service, called \textit{SciDash}, utilizing existing infrastructure for coordinated development of software repositories, focusing on GitHub\cite{github_url}\cite{ram_git_2013}. A suite of related tests will be contained in a GitHub repository with a stereotyped high-level structure that allows the \textit{SciDash} web application to discover, index and summarize it on an ongoing basis (Fig. \ref{fig:scidash_repo}).
-The portal, a web application written using the pythonic Django framework\cite{django_url} will serve as a central location where scientists can discover relevant test suites, determine test requirements, and summarize the results of test execution on submitted models. Test results can be visualized as a ``record matrix'' composed of large numbers of model/test combinations (Table \ref{table:record_matrix}, discussed in section~\ref{sec:education}, provides a toy example).  Each row in this matrix will contain results for all tests taken by one model and would serve as clear evidence of that model's scope and validity.  Models, tests, and records will be stored on GitHub, pointed to by hyperlinks in the record matrix. \textit{SciDash} will serve as a public record of competition among models, facilitating and encouraging data-driven development among modelers.
-\textbf{Thus, the second product of this proposal is a web application called \textit{SciDash}, whose back-end can index test suite repositories collaboratively developed on GitHub, and whose front-end offers users a simple environment for discovery and evaluation of models, tests, and results.}  
+We propose a service, called \textit{SciDash}, utilizing existing infrastructure for coordinated development of software repositories, focusing on GitHub\cite{github_url}\cite{ram_git_2013}. A suite of related tests will be contained in a GitHub repository with a stereotyped high-level structure allowing the \textit{SciDash} web application to discover, index and summarize it continuously (Fig. \ref{fig:scidash_repo}).
+A web application written using the pythonic Django framework\cite{django_url} will serve as a central location where scientists can discover relevant test suites, determine test requirements, and summarize the results of test execution on submitted models. Test results can be visualized as a ``record matrix'' composed of large numbers of model/test combinations (Table \ref{table:record_matrix}, discussed in section~\ref{sec:education}, provides a toy example).  Each row in this matrix will contain results for all tests taken by one model and would serve as clear evidence of that model's scope and validity.  Models, tests, and records will be stored on GitHub, pointed to by hyperlinks in the record matrix. \textit{SciDash} will serve as a public record of competition among models, facilitating and encouraging data-driven development among modelers.
+\textbf{Thus, the second product of this proposal is a web application called \textit{SciDash}, whose back-end can index test suite repositories collaboratively developed on GitHub, and whose front-end offers users a simple environment for discovery and evaluation of models, tests, and records.}  
 
 \subsection{\textit{NeuronUnit}: A Suite of Tests for Neurophysiology}\label{sec:neuronunit}
-To demonstrate the utility of these tools, an initial case study must be conducted. Because we have substantial experimental and computational neurophysiology training and expertise, we target this domain. By using machine-readable models from the Open Source Brain repository, and corresponding machine-readable data from resources like The NeuroElectro Project\cite{neuroelectro_url}, our efforts will produce a body of useful tests that also serve as a demonstration of the test-driven workflow that other areas in the biological sciences can leverage.  \textbf{The third product of this proposal is \textit{NeuronUnit}, a large suite of data-driven tests and model interfaces for a representative set of canonical neurophysiology models, all publicly available. A case study examining the implementation of \textit{NeuronUnit} will inform development of domain-specific test suites in other biology sub-fields.}
+To demonstrate the utility of these tools, an initial case study must be conducted. Because we have substantial experimental and computational neurophysiology training and expertise, we target these domain. By using machine-readable models from OSB, and corresponding machine-readable data from resources like The NeuroElectro Project\cite{neuroelectro_url}, our efforts will produce a body of useful tests that also serve as a demonstration of the test-driven workflow that other areas in the biological sciences can leverage.  \textbf{The third product of this proposal is \textit{NeuronUnit}, a large suite of data-driven tests, tools for capability implementation, and model interfaces for a representative set of canonical neurophysiology models, all publicly available. A case study examining the implementation of \textit{NeuronUnit} will inform development of domain-specific test suites in other biology sub-fields.}
 
 % Section 3.
 \section{Preliminary Activities}
 
-\subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}. Table \ref{table:glossary} provides definitions of terms.  It underlies the examples given in figures shown here.  
+\subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}. Table \ref{table:glossary} provides definitions of terms.  \textit{SciUnit} underlies the examples given in all code blocks shown here.  
 
 \begin{wrapfigure}[18]{r}{0.5\textwidth}
 %\centering
@@ -367,6 +371,8 @@ result.summarize() # Summarize the result.
 There are many possibilities for visualization of specific test results though \textit{SciDash}.  When a test record is selected from the record matrix (Table \ref{table:record_matrix}, section~\ref{sec:education}), it can point to a Sage notebook\cite{sagenb_url}, whose ``worksheets'' facilitate visualization and storage of executed code.  While Sage was written for Python, the notebook also supports the execution of code and visualization of outputs from other programming languages, making possible worksheets based on MATLAB, Mathematica, and other popular environments for modeling.  Even with \textit{SciUnit} written in Python, calls to other languages can still be issued, and their results visualized using these worksheets.
 
 Community-moderated comments on GitHub will allow test-makers and test-takers to discuss issues associated with test suites.  On GitHub, these takes the form of ``issues,'' commit messages, and comments surrounding merge requests from forked repositories.  Thus, disagreements about the appropriateness of a test can be openly aired and in many cases resolved.  The \textit{SciDash} website itself can also support public comment to extend the features of GitHub.  More importantly, we will enable sorting and filtering of \textit{SciDash} results by repository statistics, e.g. the volume of activity and the number of followers, via the GitHub API.  This will allow the most important test suites, as judged by each community, to be featured prominently on \textit{SciDash}.  Simple tagging should enable filtering by subject matter.  We also will support open authentication via existing web applications (Google, Yahoo, Twitter, etc.), lowering the barrier to participation.  The \textit{SciDash} backend will consist of a MySQL relational database, updated regularly using the GitHub API to populate record matrices.  
+
+Initially, computations can be performed centrally on our hardware (high-performance computer clusters), but as the load increases it will be important to encourage testing on contributor's machines.  We support testing on any platform out-of-the-box with installation of \textit{SciUnit}, a domain-specific library such as \textit{NeuronUnit}, and the \textit{SciDash} API to ensure that test records are properly organized for indexing by \textit{SciDash}.  Then visibility on \textit{SciDash} is as simple as executing a single script that scans the stereotyped repository for tests and executes them.   
 
 \textit{SciDash} will regularly run scripts that (1) read the GitHub repositories, (2) run any outstanding tests on new or existing models, and (3) format the results.  In order to quickly populate \textit{SciDash} with repositories that are both useful and illustrative, we will use \textit{SciUnit} to recapitulate the results of some ``settled'' competitions as \textit{SciDash} repositories, i.e. we will encode the competition rules as tests and \textit{SciDash} will then index the results.  There are several examples of settled competitions which have publicly available rules, entries, and results against which to check\cite{jolivet_quantitative_2008}.  
 
