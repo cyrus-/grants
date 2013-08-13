@@ -188,7 +188,7 @@ class LinearModel(sciunit.Model, SpikeCountFromCurrent,
 
   def train_with_currents(self, currents, counts):
     means = [numpy.mean(c) for c in currents]
-    [self.scale, self.offset] = numpy.polyfit(means, counts, deg=1)    
+    [self.offset, self.scale] = numpy.polyfit(means, counts, deg=1)    
 \end{python}
 \caption{A simple model that returns a spike count by scaling the mean of the input by a fixed parameter.}
 \label{fig:simple_model}
@@ -261,7 +261,7 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 \leavevmode
 
 \begin{figure}%[18]{r}{1\textwidth}
-\includegraphics[scale=0.6]{table.png}
+\includegraphics[scale=0.65]{table.png}
 \caption{A \textit{SciDash} record matrix}
 \label{fig:scidash_matrix}
 \vspace{-15px}
