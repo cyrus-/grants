@@ -45,8 +45,8 @@ right  = 1in]{geometry}
 %that its features aren't fully thought out. 
 
 % The lines below are turning underscores into apostophes!  
-\usepackage{alltt}
-\renewcommand{\ttdefault}{txtt}
+%\usepackage{alltt}
+%\renewcommand{\ttdefault}{txtt}
 %\usepackage[scaled]{beramono}
 %\usepackage[T1]{fontenc}
 %\titleformat{\subsection}[runin]{}{}{}{}[]
@@ -95,7 +95,7 @@ class SpikeCountTest(sciunit.Test):
   Fisher's method, based on a chi-squared test statistic.
 
   parameters:
-    inputs: list of numpy arrays containing input currents (nA)
+    inputs: list of numpy arrays containing input currents (nAf)
     means, stds: list of means and standard deviations of the 
       spike counts observed in response to the inputs
   """
@@ -121,12 +121,12 @@ class SpikeCountTest(sciunit.Test):
 \vspace{-5px}
 \caption{A single neuron spike count test family implemented in \textit{SciUnit}}
 \label{fig:rate_test}
-\vspace{-10px}
+\vspace{-15px}
 \end{figure}
 %\leavevmode
 \subsection{Example: Neural Membrane Potential Dynamics} To make our proposal concrete, we will begin by describing a test suite related to single-neuron neurophysiology. The tests in this suite are designed for experiments where stimuli is delivered to neurons of a particular type, as somatically injected current (in pA), while the somatic membrane potential of each stimulated cell (in mV) is recorded and stored.  A model claiming to capture this cell type's membrane potential dynamics must be able to accurately predict a variety of features observed in this data.
 
-One simple validation test would ask candidate models to predict the number of action potentials generated in response to a series of stimuli (called a \emph{spike count}), and compare these predictions to the distribution observed in repeated experimental trials with the same stimulus. The test creator specifies how to measure the goodness-of-fit; for example, a p-value derived from a chi-squared statistic could be calculated for each prediction and then these p-values could be combined using Fisher's method \cite{statbook}.\todo{reference for this}
+One simple validation test would ask candidate models to predict the number of action potentials generated in response to a series of stimuli (called a \emph{spike count}), and compare these predictions to the distribution observed in repeated experimental trials with the same stimulus. The test creator specifies how to measure the goodness-of-fit; for example, a p-value derived from a chi-squared statistic could be calculated for each prediction and then these p-values could be combined using Fisher's method\cite{fisher_statistical_1925}.
 
 Alongside this \emph{spike count test}, a number of other tests capturing different features of the data could be specified to produce a more comprehensive suite. For data of this sort, the QSNMC defined 17 other validation criteria in addition to one based on the overall spike count, capturing features like spike latencies (SL), mean subthreshold voltage (SV), interspike intervals (ISI) and interspike minima (ISM) that can be extracted from the data\cite{jolivet_quantitative_2008}. They then defined a combined metric favoring models that broadly succeeded at meeting these criteria, to produce an overall ranking. Such combined criteria are simply validation tests that invoke other tests to produce a result.
 
@@ -137,11 +137,11 @@ The first product of this proposal is a simple validation testing framework to s
 
 %It also requires the Numpy numerics library common to most Python scientific computing projects\cite{numpy_url}. [[no it doesn't --cyrus]]
 
-Fig. \ref{fig:rate_test} shows how a scientist would implement the spike count test described in the preceding section using \textit{SciUnit}. A \textit{SciUnit} validation test is an {instance} of a Python class implementing the \verbx{sciunit.Test} interface. Here, we show a class \verbx{SpikeCountTest} taking three \emph{parameters} in its constructor (in Python, the constructor is always named \verbx{__init__}) (their meaning is documented on lines 2-7). To create a \emph{particular} spike count test, we instantiate this class with particular experimental observations. For example, given observations from hippocampal CA1 cells (not shown), we can instantiate a test as follows:
+Fig. \ref{fig:rate_test} shows how a scientist would implement the spike count test described in the preceding section using \textit{SciUnit}. A \textit{SciUnit} validation test is an {instance} of a Python class implementing the \verbx{sciunit.Test} interface. Here, we show a class \verbx{SpikeCountTest} taking three \emph{parameters} in its constructor (in Python, the constructor is always named \verbx{__init__}; the parameters' meaning is documented on lines 5-8). To create a \emph{particular} spike count test, we instantiate this class with particular experimental observations. For example, given observations from hippocampal CA1 cells (not shown), we can instantiate a test as follows:
 \begin{python}
   CA1_sc_test = SpikeCountTest(CA1_inputs, CA1_means, CA1_stds)
 \end{python}
-We emphasize the crucial distinction between the \textit{class} \verbx{SpikeCountTest}, which defines a \emph{parameterized family} of validation tests, and the particular \textit{instance} \verbx{CA1_sc_test}, which is an individual validation test. As we will describe below, we expect communities to build repositories of such families that capture the criteria used across their field so that test generation for a particular system of interest will often consist simply of instantiating a previously-developed family with particular experimental parameters and data. For single-neuron tests like the spike rate test, we will be develping such a repository as a case study (Sec. \ref{sec:neuronunit}). 
+We emphasize the crucial distinction between the \textit{class} \verbx{SpikeCountTest}, which defines a \emph{parameterized family} of validation tests, and the particular \textit{instance} \verbx{CA1_sc_test}, which is an individual validation test. As we will describe below, we expect communities to build repositories of such families capturing the criteria used in their field so that test generation for a particular system of interest will often consist simply of instantiating a previously-developed family with particular experimental parameters and data. For single-neuron tests like the \verbx{SpikeCountTest}, we are developing such a repository as a case study (Sec. \ref{sec:neuronunit}). 
 
 % Testing in SciUnit proceeds in three phases (Figure 1):\todo{this spacing seems unnecessarily small}
 %\begin{enumerate}
@@ -162,6 +162,7 @@ class SpikeCountFromCurrent(sciunit.Capability):
 %\vspace{-15px}
 \caption{An example capability specifying a single required method.}
 \label{fig:capability}
+\vspace{-10px}
 \end{figure}
 
 \begin{figure}
@@ -176,9 +177,10 @@ class TrainSpikeCountFromCurrent(sciunit.Capability)
 %\vspace{-15px}
 \caption{Another capability specifying a training protocol (not used by the test in Figure \ref{fig:rate_test}).}
 \label{fig:training}
+\vspace{-15px}
 \end{figure}
 
-Classes that implement the \verbx{sciunit.Test} interface must contain a \verbx{run_test} method that receives a candidate \emph{model} as input and produces a \textit{score} as output. To specify the interface between the test and the model (that is, to constrain the test's scope), the test author provides a list of \emph{capabilities} in the \verbx{required_capabilities} attribute, seen on line 13 of Fig. \ref{fig:rate_test}. Capabilities are simply collections of methods that a test may need to invoke to receive relevant data, and thus are analagous to \emph{interfaces} in languages like Java \cite{java-interfaces}. In Python, they are written as classes with unimplemented members. The capability required by the test in Fig. \ref{fig:rate_test} (used on line 20) is shown in Fig. \ref{fig:capability}. In \textit{SciUnit}, we require that classes defining capabilities be tagged by inheriting from \verbx{sciunit.Capability}, for discovery by our infrastructure (see below). 
+Classes that implement the \verbx{sciunit.Test} interface must contain a \verbx{run_test} method that receives a candidate \emph{model} as input and produces a \textit{score} as output. To specify the interface between the test and the model (that is, to constrain the test's scope), the test author provides a list of \emph{capabilities} in the \verbx{required_capabilities} attribute, seen on line 13 of Fig. \ref{fig:rate_test}. Capabilities are simply collections of methods that a test may need to invoke to receive relevant data, and are analogous to \emph{interfaces} in e.g. Java \cite{java_interfaces_url}. In Python, they are written as classes with unimplemented members. The capability required by the test in Fig. \ref{fig:rate_test} (used on line 20) is shown in Fig. \ref{fig:capability}. In \textit{SciUnit}, we require that classes defining capabilities be tagged by inheriting from \verbx{sciunit.Capability}, for discovery by our infrastructure (see below). 
 
 Capabilities are \emph{implemented} by models. A simple \emph{family} of models implementing this capability is shown in Fig. \ref{fig:simple_model}. Models in this family produce a spike count by applying a linear transformation to the mean of the provided input current. The family is parameterized by a scale factor and offset, both scalars. To create a \emph{particular} model, the modeler may choose particular parameter values, just as with test families:
 \begin{python}
@@ -262,35 +264,16 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 % Section 3.
 \section{Preliminary Activities}
 
-\subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}.  We implemented it using the   Table \ref{table:glossary} provides definitions of terms.  
-
-\begin{figure}
-\begin{python}
-class CA1PyramidalCellModel(NeuroConstructModel,
-				            capabilities.ReceivesCurrent):
-	"""CA1 Pyramidal Cell model from /neuroConstruct/osb/hippocampus/
-	CA1_pyramidal_neuron/CA1PyramidalCell"""
-	def __init__(self,**kwargs):
-		# Put any other initialization here.
-		project_path = os.path.join(candidates.putils.OSB_MODELS,
-									"hippocampus",
-									"CA1_pyramidal_neuron",
-									"CA1PyramidalCell",
-									"neuroConstruct")
-		candidates.NeuroConstructModel.__init__(self,project_path,**kwargs)
-		super(CA1PyramidalCellModel,self).__init__(**kwargs)
-\end{python}
-%\vspace{-15px}
-\caption{A candidate class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
-\label{fig:ca1_model}
-\end{figure}
+\subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}. Table \ref{table:glossary} provides definitions of terms.  It underlies the examples given in figures shown here.  
 
 \begin{wrapfigure}[18]{r}{0.5\textwidth}
 %\centering
+%\vspace{-10px}
 \includegraphics[scale=0.7]{scidash_github.png}
 \caption{A \textit{SciDash} repository on GitHub}
 \label{fig:scidash_repo}
 \end{wrapfigure}
+\vspace{-10px}
 \leavevmode
 \todo{Update this figure when SciDash repo structure is finalized} 
 \subsection{\textit{SciDash} Activities}\label{sec:scidash_activities}
@@ -308,14 +291,6 @@ NeuroConstruct\cite{neuroconstruct_url,gleeson_neuroconstruct:_2007} is a simula
 The Open Source Brain project (OSB,\cite{osb_url}) curates many models described in NeuroML. OSB-curated projects are converted from their native format into NeuroML, and run on major neural simulators\cite{neuron_url,genesis_url,nest_url,moose_url}. Concordance between model output (beginning with the NeuroML description) and reference output (from native simulator source files) is reported for each model.  Thus, OSB is an excellent source of models that, in addition to being open source, are sufficiently described to enable validation.   The hippocampal CA1 pyramidal cell is commonly modeled, and we implement one such model hosted on OSB\cite{osb_ca1_url} by simply declaring a \verbx{CA1PyramidalCellModel} class , deriving from \verbx{NeuroConstructModel}.  This basic implementation simply ``wraps'' the functionality of the existing model, and only the code shown in Fig. \ref{fig:ca1_model} is required.  All OSB models, and indeed any NeuroML model, can be tested similarly.  Working together with OSB is part of our \textbf{first collaboration}, and our integration efforts can be publicly tracked\cite{neuroconstruct_rgerkin_url}.  
 
 Spanning a range of scales and original development environments, all OSB models are formally described using NeuroML, as are all model components and sub-components, such as cells, ion channels, calcium stores, etc.  These models are regularly executed on OSB servers to ensure that their output remains consistent as they are updated.  Therefore, OSB can confirm that they \textit{do} work, while linked journal articles, on-site wiki, and code inspection can establish \textit{how} they work. However, there is no mechanism for establishing \textit{how well} they work, i.e. how well the models accord with data.  \textit{SciUnit} fills this gap by helping OSB (and the larger biology community) assess models using data-driven tests in the \textit{NeuronUnit} library.  \textit{SciUnit} can be applied similarly to other biology sub-disciplines using \textit{NeuronUnit} analogues written by the corresponding communities.    
-
-\subsubsection{Capabilities from NeuroTools}
-NeuroTools\cite{neuralensemble_url} is a Python library supporting tasks associated with analysis of neural data (or model output), such as membrane potential time series, spike trains, etc. It is an open source and actively developed project, containing reliable algoithms on which to base neurophysiology tests.
-
-We use NeuroTools to implement \textit{SciUnit} capabilities in \textit{NeuronUnit} (Fig. \ref{fig:NeuronUnit_example}).  For example, a NeuroTools \verbx{AnalogSignal} object (e.g. a membrane potential time series) has a threshold detection method that returns a NeuroTools \verbx{SpikeTrain} object.  A \textit{NeuronUnit} \verbx{HasSpikeTrain} Capability requires that  \verbx{getSpikeTrain} method be implemented.  \verbx{NeuroConstructModel} does so by placing \verbx{AnalogSignal.threshold_detection} inside \verbx{getSpikeTrain}.  Many such NeuroTools objects are similarly exchanged between \verbx{NeuroConstructModel} methods.  This simplifies test writing, since basic model output properties are obtained trivially using NeuroTools object methods, and these NeuroTools objects are easily extracted from model output using candidate models subclassing \verbx{NeuroConstructModel}.  
-
-\subsubsection{Reference Data for Tests from NeuroElectro}
-Answering \textit{how well} requires validation testing against data. The NeuroElectro project\cite{neuroelectro_url} is an effort to curate all published single cell neurophysiology data\cite{tripathy_neuroelectro:_2012}.  Currently, up to 27 electrophysiological properties are reported for 93 cell types, spanning $>$ 2000 single pieces of published data extracted from article tables.  \textit{NeuronUnit} tests are easily constructed using the NeuroElectro API for reference data. Tests can be based upon data from single journal articles, or from ensembles of articles with a common theme (e.g. about a particular neuron type).  The former is illustrated in Figure \ref{fig:NeuronUnit_example}.  Associated statistics of that data (e.g mean, standard error, and sample size) are attached and enable judgement of model output according to a chosen scoring mechanism.\todo{Should there actually be an example of workflow with NeuroElectro here?} While NeuroElectro alone cannot judge all model aspects, it can serve to validate basic features of many models, such as resting membrane potential, action potential width, after-hyperpolarization amplitude, etc.  As NeuroElectro is the only publicly curated source of such data, it represents a key component for \textit{NeuronUnit} test constuction.  Continued development of the NeuroElectro API, through which data are systematically exposed to test authors, represents our \textbf{second collaboration}\cite{neuroelectro_dev_url}.  
 
 \begin{figure}
 \label{fig:ca1_model}
@@ -335,10 +310,18 @@ class CA1PyramidalCellModel(NeuroConstructModel,
 		super(CA1PyramidalCellModel,self).__init__(**kwargs)
 \end{python}
 \vspace{-5px}
-\caption{A candidate class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
-\vspace{-10px}
+\caption{A model class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
+\vspace{-15px}
 \end{figure}
 %\leavevmode
+
+\subsubsection{Capabilities from NeuroTools}
+NeuroTools\cite{neuralensemble_url} is a Python library supporting tasks associated with analysis of neural data (or model output), such as membrane potential time series, spike trains, etc. It is an open source and actively developed project, containing reliable algoithms on which to base neurophysiology tests.
+
+We use NeuroTools to implement \textit{SciUnit} capabilities in \textit{NeuronUnit} (Fig. \ref{fig:NeuronUnit_example}).  For example, a NeuroTools \verbx{AnalogSignal} object (e.g. a membrane potential time series) has a threshold detection method that returns a NeuroTools \verbx{SpikeTrain} object.  A \textit{NeuronUnit} \verbx{HasSpikeTrain} Capability requires that  \verbx{getSpikeTrain} method be implemented.  \verbx{NeuroConstructModel} does so by placing \verbx{AnalogSignal.threshold_detection} inside \verbx{getSpikeTrain}.  Many such NeuroTools objects are similarly exchanged between \verbx{NeuroConstructModel} methods.  This simplifies test writing, since basic model output properties are obtained trivially using NeuroTools object methods, and these NeuroTools objects are easily extracted from model output using candidate models subclassing \verbx{NeuroConstructModel}.  
+
+\subsubsection{Reference Data for Tests from NeuroElectro}
+Answering \textit{how well} requires validation testing against data. The NeuroElectro project\cite{neuroelectro_url} is an effort to curate all published single cell neurophysiology data\cite{tripathy_neuroelectro:_2012}.  Currently, up to 27 electrophysiological properties are reported for 93 cell types, spanning $>$ 2000 single pieces of published data extracted from article tables.  \textit{NeuronUnit} tests are easily constructed using the NeuroElectro API for reference data. Tests can be based upon data from single journal articles, or from ensembles of articles with a common theme (e.g. about a particular neuron type).  The former is illustrated in Figure \ref{fig:NeuronUnit_example}.  Associated statistics of that data (e.g mean, standard error, and sample size) are attached and enable judgement of model output according to a chosen scoring mechanism.\todo{Should there actually be an example of workflow with NeuroElectro here?} While NeuroElectro alone cannot judge all model aspects, it can serve to validate basic features of many models, such as resting membrane potential, action potential width, after-hyperpolarization amplitude, etc.  As NeuroElectro is the only publicly curated source of such data, it represents a key component for \textit{NeuronUnit} test constuction.  Continued development of the NeuroElectro API, through which data are systematically exposed to test authors, represents our \textbf{second collaboration}\cite{neuroelectro_dev_url}.  
 
 % Josh: In particular I'd like to
 %see more discussion of the overview SciDash will give of the test
@@ -369,6 +352,7 @@ result.summarize() # Summarize the result.
 \end{python}
 \caption{Working example of a NeuronUnit testing}
 \label{fig:neuronunit_example}
+\vspace{-15px}
 \end{figure}
 
 \subsection{Creating New Candidates, Capabilities and Tests}
