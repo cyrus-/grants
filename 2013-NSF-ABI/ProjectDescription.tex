@@ -194,14 +194,14 @@ CA1_linear_model_fit.train_with_currents(CA1_training_in, CA1_training_out)
 class LinearModel(sciunit.Model, SpikeCountFromCurrent, 
     TrainSpikeCountFromCurrent):
   def __init__(self, scale=None, offset=None): 
-    self.scale, self.baseline = scale, offset
+    self.scale, self.offset = scale, offset
     
   def spike_count_from_current(self, input):
     return int(self.scale*numpy.mean(input) + self.offset)
 
   def train_with_currents(self, currents, counts):
     means = [numpy.mean(c) for c in currents]
-    [self.scale, self.offset] = numpy.polyfit(means, counts, deg=1)    
+    [self.offset, self.scale] = numpy.polyfit(means, counts, deg=1)    
 \end{python}
 \caption{A simple model that returns a spike count by scaling the mean of the input by a fixed parameter.}
 \label{fig:simple_model}
