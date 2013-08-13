@@ -45,8 +45,8 @@ right  = 1in]{geometry}
 %that its features aren't fully thought out. 
 
 % The lines below are turning underscores into apostophes!  
-%\usepackage{alltt}
-%\renewcommand{\ttdefault}{txtt}
+\usepackage{alltt}
+\renewcommand{\ttdefault}{txtt}
 %\usepackage[scaled]{beramono}
 %\usepackage[T1]{fontenc}
 %\titleformat{\subsection}[runin]{}{}{}{}[]
@@ -78,21 +78,21 @@ There are related efforts in the machine learning community to develop models an
 \end{wrapfigure}
 \leavevmode
 
-Our framework is organized around simple executable \emph{validation tests} that compute agreement between a model prediction and an experimental observation. Model \textit{scope} is identified with the set of tests that a model is capable of taking and \textit{validity} is identified with how well the model performs on these tests. This methodology is inspired by the ubiquitous practice of \emph{unit testing} in software engineering. A \emph{unit test} evaluates whether a portion of a computer program (often a single function) meets one simple correctness criterion. A \textit{suite} of such tests \emph{covering} the range of desired program behaviors helps validate the functionality of the program overall. Due to the narrow scope of each test, failed tests help precisely identify which parts of a program are functioning incorrectly. Developers often write unit tests before writing the program itself, following a methodology called test-driven development (TDD)\cite{beck2003}. By writing them early, tests serve as a partial program specification, guiding development and allowing developers to measure progress simply by looking at the proportion of tests passing at any point during development. When modifications are made, developers can be confident that \emph{regressions} have not appeared by ensuring that that all tests passing before a change continue to pass afterwards. The success of unit testing and TDD in practice suggests that validation testing may be a practical foundation for model validation as well.  Inspired by these ideas, we propose here the development of \textbf{\textit{SciUnit}}, a framework for validation testing; \textbf{\textit{SciDash}}, a web application for collaboratively developing and discovering test suites, visualizing test results and organizing test-based competitions; and \textbf{\textit{NeuronUnit}}, a repository of tests and associated utilities for single-neuron neurophysiology that will serve as the most substantial initial case study for our tools.
+Our framework is organized around simple executable \emph{validation tests} that compute agreement between a model prediction and an experimental observation. Model \textit{scope} is identified with the set of tests that a model is capable of taking and \textit{validity} is identified with how well the model performs on these tests. This methodology is inspired by the ubiquitous practice of \emph{unit testing} in software engineering. A \emph{unit test} evaluates whether a portion of a computer program (often a single function) meets one simple correctness criterion. A \textit{suite} of such tests \emph{covering} the range of desired program behaviors helps validate the functionality of the program overall. Due to the narrow scope of each test, failed tests help precisely identify which parts of a program are functioning incorrectly. Developers often write unit tests before writing the program itself, following a methodology called test-driven development (TDD)\cite{beck2003}. By writing them early, tests serve as a partial program specification, guiding development and allowing developers to measure progress simply by looking at the proportion of tests passing at any point during development. When modifications are made, developers can be confident that \emph{regressions} have not appeared by ensuring that that all tests passing before a change continue to pass afterwards. The success of unit testing and TDD in practice suggests that validation testing may be a practical foundation for model validation as well.  
 
-\subsection{\textit{SciUnit}: A Simple Validation Testing Framework}
-Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML\cite{neuroml_url,gleeson_neuroml:_2010}) are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} 
+Inspired by these ideas, we propose here the development of \textbf{\textit{SciUnit}}, a framework for validation testing; \textbf{\textit{SciDash}}, a web application for collaboratively developing and discovering test suites, visualizing test results and organizing test-based competitions; and \textbf{\textit{NeuronUnit}}, a repository of tests and associated utilities for single-neuron neurophysiology that will serve as the most substantial initial case study for our tools. We will also facilitate the development, by collaborators, of test suites in other areas. At this time, we have interested collaborators in the field of fMRI-based brain imaging (eventually producing \textbf{\textit{fMRIUnit}}). A diagrammatic overview of these pieces of our proposal is shown in Figure \ref{fig:sciunit_overview}.
 
 \begin{figure}
 \small
 \begin{python}
 class SpikeCountTest(sciunit.Test):
-  """Tests a model that generates spike counts from currents.
+  """Tests models that generates spike counts from currents using
+  Fisher's method, based on a chi-squared test statistic.
 
   parameters:
-    inputs: list of input currents traces (in nA) as numpy arrays
-    means, stds: list of observed means and standard deviations of 
-      spike count distribution in response to corresponding input
+    inputs: list of numpy arrays containing input currents (nA)
+    means, stds: list of means and standard deviations of the 
+      spike counts observed in response to the inputs
   """
   def __init__(self, inputs, means, stds):
     self.inputs, self.means, self.stds = inputs, means, stds
@@ -119,23 +119,24 @@ class SpikeCountTest(sciunit.Test):
 \vspace{-10px}
 \end{figure}
 %\leavevmode
-\subsection{Example: Neural Membrane Potential Dynamics} To make our proposal concrete, we describe a test suite related to neurophysiology. These tests are derived from experiments where stimuli were delivered to neurons of a particular type, as somatically injected current (in pA), while the somatic membrane potential of each stimulated cell (in mV) was recorded and stored.  A model claiming to capture the this cell type's membrane potential dynamics must be validated in several ways. 
+\subsection{Example: Neural Membrane Potential Dynamics} To make our proposal concrete, we will begin by describing a test suite related to single-neuron neurophysiology. The tests in this suite are designed for experiments where stimuli is delivered to neurons of a particular type, as somatically injected current (in pA), while the somatic membrane potential of each stimulated cell (in mV) is recorded and stored.  A model claiming to capture this cell type's membrane potential dynamics must be able to accurately predict a variety of features observed in this data.
 
-One simple validation test would check for correspondence between the distribution of the number of action potentials produced by the model (called a \emph{spike count}) and the distribution observed in the data, in response to the same stimulus. This test would ask a candidate model to produce a predicted spike count for each stimulus and then check whether the prediction was consistent with the empirically-observed spike count distribution in response to the same stimulus.  The test creator would specify the metric for success; for example, a model that, for each stimulus, produced a spike count falling in the 95\% confidence interval of the empirical data distribution might pass this example test\todo{the QSNMC used a chi-squared metric, we should probably use that too}. 
+One simple validation test would ask candidate models to predict the number of action potentials generated in response to a series of stimuli (called a \emph{spike count}), and compare these predictions to the distribution observed in repeated experimental trials with the same stimulus. The test creator specifies how to measure the goodness-of-fit; for example, a p-value derived from a chi-squared statistic could be calculated for each prediction and then these p-values could be combined using Fisher's method \cite{statbook}.\todo{reference for this}
 
-A number of other tests would be included to complete the suite. For example, the QSNMC defined 17 other validation criteria for this sort of data, based on measures like spike latencies (SL), mean subthreshold voltage (SV), interspike intervals (ISI) and interspike minima (ISM) that can be extracted from the data\cite{jolivet_quantitative_2008}. They then defined a combined metric favoring models that broadly succeeded at meeting these individual criteria, to produce an overall ranking. Such combined criteria are simply validation tests that invoke other tests to produce a result.
+Alongside this \emph{spike count test}, a number of other tests capturing different features of the data could be specified to produce a more comprehensive suite. For data of this sort, the QSNMC defined 17 other validation criteria in addition to one based on the overall spike count, capturing features like spike latencies (SL), mean subthreshold voltage (SV), interspike intervals (ISI) and interspike minima (ISM) that can be extracted from the data\cite{jolivet_quantitative_2008}. They then defined a combined metric favoring models that broadly succeeded at meeting these criteria, to produce an overall ranking. Such combined criteria are simply validation tests that invoke other tests to produce a result.
 
-Importantly, the validation criteria are made explicit by the specification of a test suite, so modelers need not guess which criteria are being used to validate or invalidate their model. Validation criteria are subject to debate (indeed, the QSNMC criteria changed between 2007 and 2008 due to such debates), and scientists who wish to promote different criteria need only derive alternative test suites. In many cases, models require no modifications to take the new tests because the same type of data is being requested.
+Importantly, the validation criteria in each case are made explicit by the specification of a test suite, so modelers need not guess which criteria are being used to validate or invalidate their model. Validation criteria are subject to debate (indeed, the QSNMC criteria changed between 2007 and 2008 due to such debates), and scientists who wish to promote different criteria need only derive alternative test suites. In many cases, models require no modifications to take the new tests because the same type of data is requested.
 
 \subsection{Validation Testing with \emph{SciUnit}} 
-The first product of this proposal is a simple validation testing framework to support building test suites like the one described above. This framework, called \emph{SciUnit}, is written in Python and uses Python's object-oriented facilities to simplify test construction (from data) and execution\cite{python_oo_url}.  It also requires the Numpy numerics library common to most Python scientific computing projects\cite{numpy_url}.
+The first product of this proposal is a simple validation testing framework to support implementing test suites like the one described above. This framework, called \emph{SciUnit}, is written in Python \cite{python_url} and uses Python's object-oriented facilities to simplify test construction (from data) and execution\cite{python_oo_url}. Python was chosen due to its widespread adoption across the quantitative sciences, its open availability and because mature interoperability layers interfacing with other major languages used within science, including C\cite{python_ctypes_url}, R\cite{r_url}, and MATLAB\cite{matlab_url}, are available. The functionality we will describe can also be readily translated into any programming language with comparable facilities, however.
 
-Fig. \ref{fig:rate_test} shows how a scientist would implement the spike count test described in the preceding section with \textit{SciUnit}. A \textit{SciUnit} validation test is an {instance} of a Python class implementing the \verbx{sciunit.Test} interface. Here, we show a class \verbx{SpikeCountTest} taking three \emph{parameters} in its constructor (in Python, the constructor is always named \verbx{__init__}), described in the documentation string (lines 2-7). To create a \emph{particular} spike count test, we instantiate this class with particular experimental observations. For example, given observations from hippocampal CA1 cells, we can create a test as follows:
+%It also requires the Numpy numerics library common to most Python scientific computing projects\cite{numpy_url}. [[no it doesn't --cyrus]]
+
+Fig. \ref{fig:rate_test} shows how a scientist would implement the spike count test described in the preceding section using \textit{SciUnit}. A \textit{SciUnit} validation test is an {instance} of a Python class implementing the \verbx{sciunit.Test} interface. Here, we show a class \verbx{SpikeCountTest} taking three \emph{parameters} in its constructor (in Python, the constructor is always named \verbx{__init__}) (their meaning is documented on lines 2-7). To create a \emph{particular} spike count test, we instantiate this class with particular experimental observations. For example, given observations from hippocampal CA1 cells (not shown), we can instantiate a test as follows:
 \begin{python}
   CA1_sc_test = SpikeCountTest(CA1_inputs, CA1_means, CA1_stds)
 \end{python}
-
-We emphasize a crucial distinction between the \textit{class} \verbx{SpikeCountTest}, which can be thought of as representing a \emph{parameterized family} of validation tests, and the particular \textit{instance} \verbx{CA1_sc_test}, which is an individual validation test. Parameterized test families package common testing logic that can be reused to instantiate tests based on new data without having to rewrite the testing logic. As we describe below, we expect communities to build repositories of such families so that test generation will often consist simply of instantiating an existing family with particular experimental parameters and data. For single-neuron tests, we refer to this repository as \textit{NeuronUnit} (Sec. \ref{sec:neuronunit}). 
+We emphasize the crucial distinction between the \textit{class} \verbx{SpikeCountTest}, which defines a \emph{parameterized family} of validation tests, and the particular \textit{instance} \verbx{CA1_sc_test}, which is an individual validation test. As we will describe below, we expect communities to build repositories of such families that capture the criteria used across their field so that test generation for a particular system of interest will often consist simply of instantiating a previously-developed family with particular experimental parameters and data. For single-neuron tests like the spike rate test, we will be develping such a repository as a case study (Sec. \ref{sec:neuronunit}). 
 
 % Testing in SciUnit proceeds in three phases (Figure 1):\todo{this spacing seems unnecessarily small}
 %\begin{enumerate}
@@ -163,7 +164,8 @@ class SpikeCountFromCurrent(sciunit.Capability):
 class TrainSpikeCountFromCurrent(sciunit.Capability)
   def train_with_currents(self, currents, counts):
     """Takes a list of numpy arrays containing current stimulus (in nA) and
-    observed spike counts. Called once."""
+    observed spike counts. Model parameters should be adjusted based on this
+    training data."""
     raise NotImplementedError("Model does not implement capability.")
 \end{python}
 %\vspace{-15px}
@@ -171,11 +173,13 @@ class TrainSpikeCountFromCurrent(sciunit.Capability)
 \label{fig:training}
 \end{figure}
 
-Classes that implement the \verbx{sciunit.Test} interface must contain a \verbx{run_test} method that receives a candidate model as input and produces a \textit{score} as output. Models are instances of \verbx{sciunit.Model} and scores are instances of \verbx{sciunit.Score}. To specify the interface between the test and the models within its scope, the test author provides a list of \emph{capabilities} in the \verbx{required_capabilities} attribute, seen on line 5 of Fig. \ref{fig:rate_test}. Capabilities are analagous to \emph{interfaces} in languages like Java. In Python, they correspond to classes with unimplemented members. In \textit{SciUnit}, we require that such classes be tagged as capabilities by inheriting from \verbx{sciunit.Capability} to allow them to be discovered by our infrastructure (discussed below). The example capability used in Fig. \ref{fig:rate_test} is shown in Fig. \ref{fig:capability}. A simple \emph{model family} implementing this capability is seen in Fig. \ref{fig:simple_model} which simply produces a spike count by applying a linear transformation to the mean of the input current. The model family is parameterized by the scale factor and offset. To create a particular model, a modeler must choose particular parameters and instantiate the class, just as with tests:
+Classes that implement the \verbx{sciunit.Test} interface must contain a \verbx{run_test} method that receives a candidate \emph{model} as input and produces a \textit{score} as output. To specify the interface between the test and the model (that is, to constrain the test's scope), the test author provides a list of \emph{capabilities} in the \verbx{required_capabilities} attribute, seen on line 13 of Fig. \ref{fig:rate_test}. Capabilities are simply collections of methods that a test may need to invoke to receive relevant data, and thus are analagous to \emph{interfaces} in languages like Java \cite{java-interfaces}. In Python, they are written as classes with unimplemented members. The capability required by the test in Fig. \ref{fig:rate_test} (used on line 20) is shown in Fig. \ref{fig:capability}. In \textit{SciUnit}, we require that classes defining capabilities be tagged by inheriting from \verbx{sciunit.Capability}, for discovery by our infrastructure (see below). 
+
+Capabilities are \emph{implemented} by models. A simple \emph{family} of models implementing this capability is shown in Fig. \ref{fig:simple_model}. Models in this family produce a spike count by applying a linear transformation to the mean of the provided input current. The family is parameterized by a scale factor and offset, both scalars. To create a \emph{particular} model, the modeler may choose particular parameter values, just as with test families:
 \begin{python}
 CA1_linear_model_heuristic = LinearModel(3.0, 1.0)
 \end{python}
-Here, the parameters to the model are picked by the modeler heuristically or based on externally available training data. An alternative test design would be to specify a second capability (Fig. \ref{fig:training}) and modify the test to provide training data, thereby requiring that the model be able to adapt its parameters without human feedback. Whether to build training into the test protocol is a choice left to each modeler. Fig. \ref{fig:rate_test} does not include a training phase, but if external training data is available, models that implement the training capability (i.e. implement its methods) can be trained explicitly by calling the capability method just like any other Python method:
+Here, the parameters to the model were picked by the modeler heuristically, or based on externally-available knowledge. An alternative test design to the one in Figure \ref{fig:rate_test} would add a second required capability (Fig. \ref{fig:training}) and a corresponding training phase to the \verb|run_test| method. This test would thus be relevant only for those models for which the parameters can be adjusted without human involvement. Whether to build the training phase into the test protocol is a choice left to each community. Note that although Fig. \ref{fig:rate_test} does not include a training phase, if training data is available, models that nevertheless implement a training capability (like \verb|LinearModel|) can simply be trained explicitly by calling the capability method just like any other Python method (data not shown):
 \begin{python}
 CA1_linear_model_fit = LinearModel()
 CA1_linear_model_fit.train_with_currents(CA1_training_in, CA1_training_out)
@@ -197,6 +201,7 @@ class LinearModel(sciunit.Model, SpikeCountFromCurrent,
 \caption{A simple model that returns a spike count by scaling the mean of the input by a fixed parameter.}
 \label{fig:simple_model}
 \end{figure}
+
 In the test in Fig. \ref{fig:rate_test}, the \verbx{run_test} method simply calls the \verbx{spike_count_from_current} capability method  to produce spike count predictions for each input current on line 18. The resulting spike count is compared to the empirical mean and standard deviation on ...\todo{need to figure this out} to produce a mean p-value. In addition to the score itself, the returned score object also contains metadata of use to those wishing to examine the result in detail. In this test we saved the inputs and observed means and standard deviations alongside the score by using the \verbx{related_data} parameter. We discuss visualization of results in Sec. \ref{sec:scidash_activities}.
 
 Finally, a test is executed against a model instance, using the \verbx{sciunit.run} function:
@@ -212,6 +217,9 @@ A test suite is a collection of tests designed to validate a model against sever
 CA1_suite = sciunit.TestSuite([CA1_sc_test, CA1_sl_test, CA1_sv_test,CA1_isi_test, CA1_ism_test])
 \end{python}
 When a test suite is executed against a model, it produces summary data that can be shown on the console or visualized by other tools, such as the web application described in the Sec. \ref{sec:scidash}.
+
+\subsection{\textit{SciUnit}: A Simple Validation Testing Framework}
+Conceptual and practical simplicity -- the absence of "heavy-lifting'' -- is an essential requirement for community participation. Our design does not require the release of raw data or storage in standard formats. Instead, salient aspects of the data are abstracted away behind a test definition. Similarly, implementation details of a model (e.g. its programming language) need not be public or standardized -- the implementation must simply be wrapped to expose a standardized interface, so that tests can access model capabilities. Each community can collaboratively specify model interfaces capturing high-level operations of their preferred modeling formalisms. Existing modeling standards (e.g. NeuroML\cite{neuroml_url,gleeson_neuroml:_2010}) are leveraged to simplify this process. \textbf{Thus, the first product of this proposal is an object-oriented validation testing framework called \textit{SciUnit}, written in Python, that makes test construction (from data) and test-driven model execution easy and flexible.} 
 
 \begin{table}[h]\footnotesize
 \caption{Glossary of Terms}
@@ -246,7 +254,7 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 % Section 3.
 \section{Preliminary Activities}
 
-\subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}.  We implemented it using the Python programming language\cite{python_url} due to its widespread adoption across the quantitative sciences. Python also supports interoperability with other major languages used within science, including C, R\cite{r_url}, and MATLAB\cite{matlab_url}. The functionality we have described could also be readily translated into any programming language with comparable facilities.  Table \ref{table:glossary} provides definitions of terms.  
+\subsection{\textit{SciUnit} Activities} We have developed most of the core testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}.  We implemented it using the   Table \ref{table:glossary} provides definitions of terms.  
 
 \begin{figure}
 \begin{python}
