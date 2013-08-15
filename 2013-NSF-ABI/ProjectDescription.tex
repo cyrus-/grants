@@ -71,7 +71,7 @@ Discipline-specific competitions having a similar structure but with more sophis
 \begin{wrapfigure}{r}{0.6\textwidth}
 \vspace{-38px}
 \includegraphics[scale=0.75]{sciunit_overview.pdf}
-\caption{Proposal overview. \small{i) The \textit{SciUnit} framework can generate discipline-specific libraries for tests generation and model interfacing.  \textit{NeuronUnit} is proposed and described here.  Experimental data guides test development; model generation informs and is informed by these \textit{SciUnit} libraries.  Each \text{SciUnit} test suite repository on GitHub is indexed by the \textit{SciDash} web application.  The OSB and QSNMC test suites are being built using NeuroUnit and are described in the text. \textit{SciDash} automatically runs the test collections in each suite and publicly displays the results.}}
+\caption{Proposal overview. \small{i) The \textit{SciUnit} framework can generate discipline-specific libraries for tests generation and model interfacing.  \textit{NeuronUnit} is proposed and described here.  Experimental data guides test development; model generation informs and is informed by these \textit{SciUnit} libraries.  Each \text{SciUnit} test suite repository on GitHub is indexed by the \textit{SciDash} web application.  Test suites for OSB and QSNMC (described in the text) are being built. \textit{SciDash} automatically runs the test collections in each suite and publicly displays the results.}}
 \vspace{-10px}
 \label{fig:sciunit_overview}
 \end{wrapfigure}
@@ -155,7 +155,7 @@ class SpikeCountFromCurrent(sciunit.Capability):
 
 \begin{figure}
 \begin{python}
-class TrainSpikeCountFromCurrent(sciunit.Capability)
+class TrainSpikeCountFromCurrent(sciunit.Capability):
   def train_with_currents(self, currents, counts):
     """Takes a list of numpy arrays containing current stimulus (in nA) and
     observed spike counts. Model parameters should be adjusted based on this
@@ -197,12 +197,12 @@ class LinearModel(sciunit.Model, SpikeCountFromCurrent,
 
 In the test in Fig. \ref{fig:rate_test}, the \verbx{run_test} method simply calls the \verbx{spike_count_from_current} capability method  to produce spike count predictions for each input current on line 18. There are many possibly statistical choices for deriving a test score.  In the figure, the resulting spike count is compared to the empirical mean to produce a chi-squared statistic, and ultimately a p-value. Alternatively, the array of standard deviations (line 10) could be used to derive a Z-score.  In addition to the score itself, the returned score object also contains metadata of use to those wishing to examine the result in detail. In this test we saved the inputs and observed means and standard deviations alongside the score by using the \verbx{related_data} parameter. We discuss visualization of results in Secs. \ref{sec:scidash_activities} and \ref{sec:scidash_visualization}.
 
-Finally, a test is executed against a model instance, using the \verbx{sciunit.run} function:
+Finally, a test is executed against a model instance, using the \verbx{sciunit.judge} function:
 \begin{python}
-score = sciunit.run(CA1_sc_test, CA1_linear_model_heuristic)
+score = sciunit.judge(CA1_sc_test, CA1_linear_model_heuristic)
 \end{python}
 
-The \verbx{sciunit.run} function operates in three phases: \textbf{(1) Capability Checking}: The model is verified as capable of taking the test by checking each capability in the test's \verbx{required_capabilities} attribute; \textbf{(2) Test Execution}: The test's \verbx{run_test} method is called to execute the model and the output is cached. \textbf{(3) Output Validation}: \verbx{run_test} returns an instance of a \verbx{sciunit.Score} subclass expressing the goodness-of-fit between the model output and the data used to parameterize the test. Any errors that occur during this process are reported by raising an appropriate exception.
+The \verbx{sciunit.judge} function operates in three phases: \textbf{(1) Capability Checking}: The model is verified as capable of taking the test by checking each capability in the test's \verbx{required_capabilities} attribute; \textbf{(2) Test Execution}: The test's \verbx{run_test} method is called to execute the model and the output is cached. \textbf{(3) Output Validation}: \verbx{run_test} returns an instance of a \verbx{sciunit.Score} subclass containing a goodness-of-fit metric between the model output and the data used to parameterize the test.  Any errors that occur during this process are reported by raising an appropriate exception.
 
 \subsection{\textit{SciUnit} Test Suites}
 A test suite is a collection of tests designed to validate a model against several mutually coherent requirements, i.e. various summaries of the data.  The following is a test suite that could be used for a simplified version of the QSNMC:  
@@ -241,8 +241,19 @@ This workflow continuously produces a summary of the field, indicating which mod
 \subsection{\textit{SciDash}: A Community web application}\label{sec:scidash}
 This framework is most effective when the current state of a research area is represented by a collection of tests and models. This requires coordination among research groups, so community-oriented cyberinfrastructure to support test suite creation and summarization, building upon \textit{SciUnit}, is essential.
 We propose a service, called \textit{SciDash}, utilizing existing infrastructure for coordinated development of software repositories, focusing on GitHub\cite{github_url}\cite{ram_git_2013}. A suite of related tests will be contained in a GitHub repository with a stereotyped high-level structure allowing the \textit{SciDash} web application to discover, index and summarize it continuously (Fig. \ref{fig:scidash_repo}).
-A web application written using the Django framework\cite{django_url} will serve as a central location where scientists can discover relevant test suites, determine test requirements, and summarize the results of test execution on submitted models. Test results can be visualized as a ``record matrix'' composed of large numbers of model/test combinations (Fig. \ref{fig:scidash_matrix}).  Each row in this matrix will contain results for all tests taken by one model and would serve as clear evidence of that model's scope and validity.  Models, tests, and records will be stored on GitHub, pointed to by hyperlinks in the record matrix. \textit{SciDash} will serve as a public record of competition among models, facilitating and encouraging data-driven development among modelers.
-\textbf{Thus, the second product of this proposal is a web application called \textit{SciDash}, whose back-end can index test suite repositories collaboratively developed on GitHub, and whose front-end offers users a simple environment for discovery and evaluation of models, tests, and records.}  
+<<<<<<< HEAD
+
+\begin{wrapfigure}[18]{r}{0.45\textwidth}
+\center
+\vspace{-10px}
+\includegraphics[scale=0.72]{scidash_github.png}
+\caption{A \textit{SciDash} repository on GitHub}
+\label{fig:scidash_repo}
+\end{wrapfigure}
+\vspace{-10px}
+\leavevmode
+
+A web application written using the Django framework\cite{django_url} will serve as a central location where scientists can discover relevant test suites, determine test requirements, and summarize the results of test execution on submitted models. Test results can be visualized as a ``record matrix'' composed of large numbers of model/test combinations (Fig. \ref{fig:scidash_matrix}).  Each row in this matrix will contain results for all tests taken by one model and would serve as clear evidence of that model's scope and validity.  Models, tests, and records will be stored on GitHub, pointed to by hyperlinks in the record matrix. \textit{SciDash} will serve as a public record of competition among models, facilitating and encouraging data-driven development among modelers.\textbf{Thus, the second product of this proposal is a web application called \textit{SciDash}, whose back-end can index test suite repositories collaboratively developed on GitHub, and whose front-end offers users a simple environment for discovery and evaluation of models, tests, and records.}  
 
 \subsection{\textit{NeuronUnit}: A Suite of Tests for Neurophysiology}\label{sec:neuronunit}
 To demonstrate the utility of these tools, an initial case study must be conducted. Because we have substantial experimental and computational neurophysiology training and expertise, we target these domains initially. By using machine-readable models from Open Source Brain (OSB), and machine-readable data from resources like The NeuroElectro Project\cite{neuroelectro_url}, our efforts will produce a body of useful tests that also serve as a demonstration of the test-driven workflow that other areas in the biological sciences can leverage.  \textbf{The third product of this proposal is \textit{NeuronUnit}, a large suite of data-driven tests, tools for capability implementation, and model interfaces for a representative set of canonical neurophysiology models, all publicly available. A case study examining the implementation of \textit{NeuronUnit} will inform development of domain-specific test suites in other biology sub-fields.}
@@ -252,14 +263,11 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 
 \subsection{\textit{SciUnit} Activities} We have developed all core features of the validation testing framework, \textit{SciUnit}, under a free, open-source license at the project development repository\cite{sciunit_url}. Table \ref{table:glossary} provides definitions of terms used in this proposal and in the code. \textit{SciUnit} underlies the examples given in all code blocks here.  
 
-\begin{wrapfigure}[18]{r}{0.5\textwidth}
-\includegraphics[scale=0.7]{scidash_github.png}
-\caption{A \textit{SciDash} repository on GitHub}
-\label{fig:scidash_repo}
-\end{wrapfigure}
-\vspace{-10px}
-\leavevmode
-\todo{Update this figure when SciDash repo structure is finalized} 
+\subsection{\textit{SciDash} Activities}\label{sec:scidash_activities}
+We have also begun work on the \textit{SciDash} web application, which points to test suite repositories and aggregates test results for scientific communities. A development version written using Django (a Python web framework) is currently live\cite{scidash_url}.  It is populated with models and tests from the educational illustration in Table \ref{table:record_matrix} (section~\ref{sec:education}).  We have implemented \textit{SciDash} in three layers.
+The \textbf{first layer} is completely under the control of individual developer communities, and consists of git repositories.  Git is the most popular implementation of ``version control'' among developers today\cite{ram_git_2013}, and is increasingly used for open science projects (e.g. OSB\cite{osb_url}).  The GitHub website\cite{github_url} is the most popular location for collaborative code development using git.  It organizes millions of git repositories, provides numerous tools for collaboration and discussion, and easy-to-use GUIs for every operating system.  Git and GitHub also meet all the requirements of a means for collaboration on test suite repositories: they are open (but provide user access controls); the entire history of code changes is visible; and collaboration is simple.  For example, anyone can ``fork'' a repository on GitHub, make desired changes, and optionally submit those changes back to the main repository for inclusion.  These virtues make GitHub an ideal first layer for \textit{SciDash}.  We created a vanilla test suite repository\cite{scidash_repo_url} on \text{SciDash} (Fig. \ref{fig:scidash_repo}).  We are currently developing an API for \textit{SciDash} to identify all similarly structured repositories (by tracking the lineage of the repository above using the GitHub API).
+This list of repositories will be indexed by \textit{SciDash} to form the \textbf{second layer}, an overview of the state of all \textit{SciDash} repositories on GitHub.  This index will be searchable and filterable on the \textit{SciDash} website to identify repositories of interest to a particular research community.  
+The \textbf{third layer} will be a ``dashboard'' view of the state of a field, visible through a matrix of records for model/test combinations in a GitHub repository (Fig. \ref{fig:scidash_repo}).  Each record will link to test records (stored in the repository), displaying line-by-line the executed code and intermediate output statements, as well as the underlying models and tests.   
 
 \begin{figure}%[18]{r}{1\textwidth}
 \includegraphics[scale=0.65]{table.png}
@@ -269,12 +277,6 @@ To demonstrate the utility of these tools, an initial case study must be conduct
 \end{figure}
 \vspace{-10px}
 \leavevmode
-
-\subsection{\textit{SciDash} Activities}\label{sec:scidash_activities}
-We have also begun work on the \textit{SciDash} web application, which points to test suite repositories and aggregates test results for scientific communities. A development version written using Django (a Python web framework) is currently live\cite{scidash_url}.  It is populated with models and tests from the educational illustration in Table \ref{table:record_matrix} (section~\ref{sec:education}).  We have implemented \textit{SciDash} in three layers.
-The \textbf{first layer} is completely under the control of individual developer communities, and consists of git repositories.  Git is the most popular implementation of ``version control'' among developers today\cite{ram_git_2013}, and is increasingly used for open science projects (e.g. OSB\cite{osb_url}).  The GitHub website\cite{github_url} is the most popular location for collaborative code development using git.  It organizes millions of git repositories, provides numerous tools for collaboration and discussion, and easy-to-use GUIs for every operating system.  Git and GitHub also meet all the requirements of a means for collaboration on test suite repositories: they are open (but provide user access controls); the entire history of code changes is visible; and collaboration is simple.  For example, anyone can ``fork'' a repository on GitHub, make desired changes, and optionally submit those changes back to the main repository for inclusion.  These virtues make GitHub an ideal first layer for \textit{SciDash}.  We created a vanilla test suite repository\cite{scidash_repo_url} on \text{SciDash} (Fig. \ref{fig:scidash_repo}).  We are currently developing an API for \textit{SciDash} to identify all similarly structured repositories (by tracking the lineage of the repository above using the GitHub API).
-This list of repositories will be indexed by \textit{SciDash} to form the \textbf{second layer}, an overview of the state of all \textit{SciDash} repositories on GitHub.  This index will be searchable and filterable on the \textit{SciDash} website to identify repositories of interest to a particular research community.  
-The \textbf{third layer} will be a ``dashboard'' view of the state of a field, visible through a matrix of records for model/test combinations in a GitHub repository (Fig. \ref{fig:scidash_matrix}).  Each record will link to test records (stored in the repository), displaying line-by-line the executed code and intermediate output statements, as well as the underlying models and tests.   
 
 \subsection{\textit{NeuronUnit} Activities}
 \label{sec:neuronunit_acitivities}
@@ -291,13 +293,11 @@ Spanning a range of scales and original development environments, all OSB models
 
 \begin{figure}
 \begin{python}
-class CA1PyramidalCellModel(NeuroConstructModel,
-				            capabilities.ReceivesCurrent):
+class CA1PyramidalCellModel(NeuroConstructModel):
 	"""CA1 Pyramidal Cell model from Open Source Brain."""
 	def __init__(self,**kwargs):
 		project_path = neuroconstruct.get_path("hippocampus","CA1_pyramidal_neuron","CA1PyramidalCell","neuroConstruct")
 		models.NeuroConstructModel.__init__(self,project_path,**kwargs)
-		super(CA1PyramidalCellModel,self).__init__(**kwargs)
 \end{python}
 \vspace{-5px}
 \caption{A model class corresponding to a CA1 Pyramidal Cell model from Open Source Brain}
@@ -463,16 +463,16 @@ With projects open at every level, links embedded in social media can kindle pub
 %are  Insect Behavior and Learning,  Central Pattern Generators and Locomotion, and  Sensory 
 %Adaptation. Each module will involve a set of coupled classroom active-learning sessions and 
 %web-based computer simulation labs, focusing on the fundamentals of scientific reasoning, 
-%mathematical skills, data analysis and relevant social impact within the context of the PIâ€™s 
+%mathematical skills, data analysis and relevant social impact within the context of the PIÕs 
 %research on neural adaptation. All personnel will contribute to the initial design of each module, 
 %and the undergraduate students will perform the web development. Websites will be maintained 
-%on the PIâ€™s existing dedicated web server. One new module will be developed in each of years 1-
+%on the PIÕs existing dedicated web server. One new module will be developed in each of years 1-
 %3 of the grant.
 
 %These activities will interface with an ongoing program (Borrow a Biologist) that has been 
 %established to foster connections between under-represented students in the community, their 
 %teachers, and faculty from Arizona State University's School of Life Sciences. With the aid of the 
-%â€œBorrow a Biologistâ€ program, a team of 2-3 biology and mathematics teachers will be recruited 
+%ÒBorrow a BiologistÓ program, a team of 2-3 biology and mathematics teachers will be recruited 
 %each year. Teachers will participate in 1-2 day summer teacher 
 %training sessions, and the PI and graduate student will visit the 
 %classroom and provide on-going email contact with teachers and high 
@@ -528,7 +528,7 @@ We have the appropriate team members to meet these criteria.
 \textbf{Jonathan Aldrich, PhD} (2 hrs/week) has expertise in software engineering, software verification and validation, and human factors in software design. He will guide overall software architecture and supervise and train Mr. Omar.  His expertise in software design for science and engineering applications will be key in this role, and assure \textbf{quality}.  Dr. Aldrich will provide guidance on the overall structure of implementation.  Dr. Aldrich is Mr. Omar's graduate supervisor.
 
 \subsection{[Key Personnel and Collaborators]}
-\textbf{Cyrus Omar} (25 hrs/week) is a senior graduate student with expertise in computational modeling in neuroscience, computer science, and software infrastructure for science.  He will guide core framework design, development, and software architecture (\textbf{Quality}) and maintain the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about testing practicalities, informing code revisions.  
+\textbf{Cyrus Omar} (25 hrs/week) is a senior graduate student with expertise in computational modeling in neuroscience, computer science, and software infrastructure for science.  He has been actively involved in \textit{SciUnit}'s design, development, and software architecture (\textbf{Quality}) and will continue to maintain the core \textit{SciUnit} Python module.  He will get feedback from Dr. Gerkin about testing practicalities, informing code revisions.  
 
 \textbf{R. Angus Silver, PhD} is a full professor with expertise in neurophysiology, computational neuroscience and neuroinformatics.  
 A frequent collaborator of Crook, Silver maintains OSB, funded by The Wellcome Trust.  
@@ -572,4 +572,3 @@ Junior Prize and an ICSE most influential paper award.
 \nobibliography{references,references_crook,urls,references_ja}
 %\listoftodos
 \end{document}
-
